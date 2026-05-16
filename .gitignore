@@ -1,0 +1,16 @@
+.env
+*.exe
+*.test
+*.log
+*.iml
+coverage.out
+console.log
+grenade.json
+tmp/
+.idea/
+.vscode/
+.dart_tool/
+.flutter-plugins
+.flutter-plugins-dependencies
+.metadata
+frontend/build/
