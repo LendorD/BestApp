@@ -1,6 +1,6 @@
 DATABASE_URL ?= postgres://gamementor:gamementor@localhost:5432/gamementor?sslmode=disable
 
-.PHONY: run test tidy build docker-up docker-down migrate-up migrate-down migrate-create recorder-run frontend-get frontend-run frontend-run-api frontend-build frontend-analyze
+.PHONY: run test tidy build docker-up docker-down migrate-up migrate-down migrate-create recorder-run frontend-get frontend-run frontend-run-api frontend-stop frontend-build frontend-analyze
 
 run:
 	go run ./cmd/api
@@ -40,6 +40,9 @@ frontend-run:
 
 frontend-run-api:
 	cd frontend && flutter run -d chrome --web-port 5173 --dart-define=USE_MOCK_API=false --dart-define=API_BASE_URL=http://localhost:8080/api/v1
+
+frontend-stop:
+	powershell -NoProfile -Command "$$pids = Get-NetTCPConnection -LocalPort 5173 -ErrorAction SilentlyContinue | Select-Object -ExpandProperty OwningProcess -Unique; if ($$pids) { Stop-Process -Id $$pids -Force }"
 
 frontend-build:
 	cd frontend && flutter build web
