@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../app/theme.dart';
+import '../config/app_config.dart';
 
 class AppShell extends StatelessWidget {
   const AppShell({required this.child, super.key});
@@ -95,42 +96,52 @@ class _DesktopSidebar extends StatelessWidget {
             const SizedBox(height: 30),
             for (final item in _navItems) _NavButton(item: item),
             const Spacer(),
-            Container(
-              padding: const EdgeInsets.all(16),
-              decoration: BoxDecoration(
-                borderRadius: BorderRadius.circular(18),
-                gradient: LinearGradient(
-                  colors: [
-                    GameMentorColors.green.withValues(alpha: 0.22),
-                    GameMentorColors.blue.withValues(alpha: 0.16),
-                  ],
-                ),
-                border: Border.all(
-                  color: GameMentorColors.green.withValues(alpha: 0.35),
-                ),
-              ),
-              child: const Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Icon(Icons.bolt_rounded, color: GameMentorColors.green),
-                  SizedBox(height: 10),
-                  Text(
-                    'Mock mode active',
-                    style: TextStyle(fontWeight: FontWeight.w800),
-                  ),
-                  SizedBox(height: 6),
-                  Text(
-                    'Switch with dart-define when backend is running.',
-                    style: TextStyle(
-                      color: GameMentorColors.muted,
-                      height: 1.35,
-                    ),
-                  ),
-                ],
-              ),
-            ),
+            const _ModeBadge(),
           ],
         ),
+      ),
+    );
+  }
+}
+
+class _ModeBadge extends StatelessWidget {
+  const _ModeBadge();
+
+  @override
+  Widget build(BuildContext context) {
+    final mockMode = AppConfig.useMockApi;
+    final color = mockMode ? GameMentorColors.green : GameMentorColors.blue;
+
+    return Container(
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(18),
+        gradient: LinearGradient(
+          colors: [
+            color.withValues(alpha: 0.22),
+            GameMentorColors.purple.withValues(alpha: 0.12),
+          ],
+        ),
+        border: Border.all(color: color.withValues(alpha: 0.35)),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Icon(
+            mockMode ? Icons.bolt_rounded : Icons.cloud_sync_rounded,
+            color: color,
+          ),
+          const SizedBox(height: 10),
+          Text(
+            mockMode ? 'Mock mode active' : 'API mode active',
+            style: const TextStyle(fontWeight: FontWeight.w800),
+          ),
+          const SizedBox(height: 6),
+          Text(
+            mockMode ? 'Local demo data is used.' : AppConfig.apiBaseUrl,
+            style: const TextStyle(color: GameMentorColors.muted, height: 1.35),
+          ),
+        ],
       ),
     );
   }
