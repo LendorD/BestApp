@@ -77,9 +77,11 @@ func (r *DotaRepository) UpsertMatches(ctx context.Context, accountID int64, mat
 		_, err := tx.Exec(ctx, `
 			INSERT INTO tbl_dota_player_matches (
 				match_id, account_id, player_slot, radiant_win, won, hero_id, kills,
-				deaths, assists, duration_seconds, start_time, raw, updated_at
+				deaths, assists, gold_per_min, xp_per_min, last_hits, hero_damage,
+				tower_damage, hero_healing, average_rank, party_size, game_mode,
+				duration_seconds, start_time, raw, updated_at
 			)
-			VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, now())
+			VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19, $20, $21, now())
 			ON CONFLICT (account_id, match_id) DO UPDATE
 			SET player_slot = EXCLUDED.player_slot,
 			    radiant_win = EXCLUDED.radiant_win,
@@ -88,12 +90,24 @@ func (r *DotaRepository) UpsertMatches(ctx context.Context, accountID int64, mat
 			    kills = EXCLUDED.kills,
 			    deaths = EXCLUDED.deaths,
 			    assists = EXCLUDED.assists,
+			    gold_per_min = EXCLUDED.gold_per_min,
+			    xp_per_min = EXCLUDED.xp_per_min,
+			    last_hits = EXCLUDED.last_hits,
+			    hero_damage = EXCLUDED.hero_damage,
+			    tower_damage = EXCLUDED.tower_damage,
+			    hero_healing = EXCLUDED.hero_healing,
+			    average_rank = EXCLUDED.average_rank,
+			    party_size = EXCLUDED.party_size,
+			    game_mode = EXCLUDED.game_mode,
 			    duration_seconds = EXCLUDED.duration_seconds,
 			    start_time = EXCLUDED.start_time,
 			    raw = EXCLUDED.raw,
 			    updated_at = now()
 		`, match.MatchID, accountID, match.PlayerSlot, match.RadiantWin, match.Won, match.HeroID,
-			match.Kills, match.Deaths, match.Assists, match.DurationSeconds, startTime, []byte(raw))
+			match.Kills, match.Deaths, match.Assists, match.GoldPerMin, match.XPPerMin,
+			match.LastHits, match.HeroDamage, match.TowerDamage, match.HeroHealing,
+			match.AverageRank, match.PartySize, match.GameMode, match.DurationSeconds,
+			startTime, []byte(raw))
 		if err != nil {
 			return fmt.Errorf("upsert dota match %d: %w", match.MatchID, err)
 		}

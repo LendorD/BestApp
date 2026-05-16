@@ -70,7 +70,7 @@ class _AdminPageState extends ConsumerState<AdminPage> {
       if (mounted) {
         ScaffoldMessenger.of(
           context,
-        ).showSnackBar(const SnackBar(content: Text('Grenade added')));
+        ).showSnackBar(const SnackBar(content: Text('Граната добавлена')));
         _title.clear();
         _description.clear();
         _from.clear();
@@ -95,14 +95,14 @@ class _AdminPageState extends ConsumerState<AdminPage> {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(
-          'Admin Panel',
+          'Админ-панель',
           style: Theme.of(
             context,
           ).textTheme.headlineMedium?.copyWith(fontWeight: FontWeight.w900),
         ),
         const SizedBox(height: 8),
         const Text(
-          'Add CS2 utility entries through the same API contract used by the app.',
+          'Добавление CS2 раскидок через тот же API-контракт, который использует приложение.',
           style: TextStyle(color: GameMentorColors.muted),
         ),
         const SizedBox(height: 22),
@@ -118,7 +118,7 @@ class _AdminPageState extends ConsumerState<AdminPage> {
                       compact: compact,
                       children: [
                         _SelectField(
-                          label: 'Map',
+                          label: 'Карта',
                           value: _map,
                           values: const {
                             'mirage': 'Mirage',
@@ -132,29 +132,29 @@ class _AdminPageState extends ConsumerState<AdminPage> {
                           onChanged: (value) => setState(() => _map = value),
                         ),
                         _SelectField(
-                          label: 'Side',
+                          label: 'Сторона',
                           value: _side,
                           values: const {'T': 'T', 'CT': 'CT'},
                           onChanged: (value) => setState(() => _side = value),
                         ),
                         _SelectField(
-                          label: 'Type',
+                          label: 'Тип',
                           value: _type,
                           values: const {
-                            'smoke': 'Smoke',
-                            'flash': 'Flash',
+                            'smoke': 'Смок',
+                            'flash': 'Флеш',
                             'molotov': 'Molotov',
                             'he': 'HE',
                           },
                           onChanged: (value) => setState(() => _type = value),
                         ),
                         _SelectField(
-                          label: 'Difficulty',
+                          label: 'Сложность',
                           value: _difficulty,
                           values: const {
-                            'easy': 'Easy',
-                            'medium': 'Medium',
-                            'hard': 'Hard',
+                            'easy': 'Легко',
+                            'medium': 'Средне',
+                            'hard': 'Сложно',
                           },
                           onChanged: (value) =>
                               setState(() => _difficulty = value),
@@ -165,24 +165,27 @@ class _AdminPageState extends ConsumerState<AdminPage> {
                     _ResponsiveRow(
                       compact: compact,
                       children: [
-                        _TextInput(controller: _title, label: 'Title'),
-                        _TextInput(controller: _from, label: 'From position'),
-                        _TextInput(controller: _to, label: 'To position'),
+                        _TextInput(controller: _title, label: 'Название'),
+                        _TextInput(controller: _from, label: 'Откуда'),
+                        _TextInput(controller: _to, label: 'Куда'),
                       ],
                     ),
                     const SizedBox(height: 14),
                     _TextInput(
                       controller: _description,
-                      label: 'Description',
+                      label: 'Описание',
                       maxLines: 4,
                     ),
                     const SizedBox(height: 14),
                     _ResponsiveRow(
                       compact: compact,
                       children: [
-                        _TextInput(controller: _imageUrl, label: 'Image URL'),
-                        _TextInput(controller: _videoUrl, label: 'Video URL'),
-                        _TextInput(controller: _tags, label: 'Tags'),
+                        _TextInput(
+                          controller: _imageUrl,
+                          label: 'URL картинки',
+                        ),
+                        _TextInput(controller: _videoUrl, label: 'URL видео'),
+                        _TextInput(controller: _tags, label: 'Теги'),
                       ],
                     ),
                     const SizedBox(height: 20),
@@ -199,7 +202,7 @@ class _AdminPageState extends ConsumerState<AdminPage> {
                                 ),
                               )
                             : const Icon(Icons.add_rounded),
-                        label: const Text('Add grenade'),
+                        label: const Text('Добавить гранату'),
                       ),
                     ),
                   ],
@@ -259,7 +262,7 @@ class _TextInput extends StatelessWidget {
       decoration: InputDecoration(labelText: label),
       validator: (value) {
         if (value == null || value.trim().isEmpty) {
-          return '$label is required';
+          return 'Поле обязательно';
         }
         return null;
       },

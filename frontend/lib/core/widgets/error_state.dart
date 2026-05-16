@@ -22,7 +22,7 @@ class ErrorState extends StatelessWidget {
           ),
           const SizedBox(height: 12),
           const Text(
-            'Something went wrong',
+            'Что-то пошло не так',
             style: TextStyle(fontSize: 18, fontWeight: FontWeight.w900),
           ),
           const SizedBox(height: 8),
@@ -36,7 +36,7 @@ class ErrorState extends StatelessWidget {
             ElevatedButton.icon(
               onPressed: onRetry,
               icon: const Icon(Icons.refresh_rounded),
-              label: const Text('Retry'),
+              label: const Text('Повторить'),
             ),
           ],
         ],

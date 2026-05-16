@@ -30,8 +30,9 @@ class CS2GrenadesPage extends ConsumerWidget {
           data: (items) {
             if (items.isEmpty) {
               return const EmptyState(
-                title: 'No grenades found',
-                message: 'Try another map, type, side or search phrase.',
+                title: 'Гранаты не найдены',
+                message:
+                    'Попробуй другую карту, тип, сторону или поисковый запрос.',
                 icon: Icons.filter_alt_off_rounded,
               );
             }
@@ -69,14 +70,14 @@ class _PageHeader extends StatelessWidget {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  'CS2 Grenades',
+                  'Гранаты CS2',
                   style: Theme.of(context).textTheme.headlineMedium?.copyWith(
                     fontWeight: FontWeight.w900,
                   ),
                 ),
                 const SizedBox(height: 8),
                 const Text(
-                  'Browse lineups by map, side, grenade type and difficulty.',
+                  'Фильтруй раскидки по карте, стороне, типу гранаты и сложности.',
                   style: TextStyle(color: GameMentorColors.muted, height: 1.45),
                 ),
               ],
@@ -93,7 +94,7 @@ class _PageHeader extends StatelessWidget {
                 border: Border.all(color: GameMentorColors.border),
               ),
               child: Text(
-                filters.hasActiveFilters ? 'Filtered view' : 'All utilities',
+                filters.hasActiveFilters ? 'Фильтры активны' : 'Все раскидки',
                 style: const TextStyle(fontWeight: FontWeight.w800),
               ),
             ),
@@ -125,35 +126,35 @@ class _FiltersBar extends ConsumerWidget {
               onChanged: (value) => update(filters.copyWith(search: value)),
             ),
             _Dropdown(
-              label: 'Map',
+              label: 'Карта',
               value: filters.map,
               values: {for (final map in maps) map.code: map.displayName},
               onChanged: (value) => update(filters.copyWith(map: value ?? '')),
             ),
             _Dropdown(
-              label: 'Side',
+              label: 'Сторона',
               value: filters.side,
-              values: const {'T': 'T Side', 'CT': 'CT Side'},
+              values: const {'T': 'T сторона', 'CT': 'CT сторона'},
               onChanged: (value) => update(filters.copyWith(side: value ?? '')),
             ),
             _Dropdown(
-              label: 'Type',
+              label: 'Тип',
               value: filters.type,
               values: const {
-                'smoke': 'Smoke',
-                'flash': 'Flash',
+                'smoke': 'Смок',
+                'flash': 'Флеш',
                 'molotov': 'Molotov',
                 'he': 'HE',
               },
               onChanged: (value) => update(filters.copyWith(type: value ?? '')),
             ),
             _Dropdown(
-              label: 'Difficulty',
+              label: 'Сложность',
               value: filters.difficulty,
               values: const {
-                'easy': 'Easy',
-                'medium': 'Medium',
-                'hard': 'Hard',
+                'easy': 'Легко',
+                'medium': 'Средне',
+                'hard': 'Сложно',
               },
               onChanged: (value) =>
                   update(filters.copyWith(difficulty: value ?? '')),
@@ -173,7 +174,7 @@ class _FiltersBar extends ConsumerWidget {
                   child: TextButton.icon(
                     onPressed: () => update(const CS2GrenadeFilters()),
                     icon: const Icon(Icons.close_rounded),
-                    label: const Text('Reset'),
+                    label: const Text('Сбросить'),
                   ),
                 ),
               ],
@@ -191,7 +192,7 @@ class _FiltersBar extends ConsumerWidget {
                     const SizedBox(width: 12),
                   ],
                   IconButton.filledTonal(
-                    tooltip: 'Reset filters',
+                    tooltip: 'Сбросить фильтры',
                     onPressed: () => update(const CS2GrenadeFilters()),
                     icon: const Icon(Icons.restart_alt_rounded),
                   ),
@@ -243,7 +244,7 @@ class _SearchFieldState extends State<_SearchField> {
     return TextField(
       controller: _controller,
       decoration: const InputDecoration(
-        labelText: 'Search',
+        labelText: 'Поиск',
         prefixIcon: Icon(Icons.search_rounded),
       ),
       onChanged: widget.onChanged,
@@ -271,7 +272,7 @@ class _Dropdown extends StatelessWidget {
       isExpanded: true,
       decoration: InputDecoration(labelText: label),
       items: [
-        const DropdownMenuItem<String>(value: '', child: Text('All')),
+        const DropdownMenuItem<String>(value: '', child: Text('Все')),
         for (final entry in values.entries)
           DropdownMenuItem<String>(value: entry.key, child: Text(entry.value)),
       ],
@@ -388,7 +389,7 @@ class _GrenadeCard extends StatelessWidget {
                     _DifficultyPill(difficulty: grenade.difficulty),
                     const Spacer(),
                     IconButton.filledTonal(
-                      tooltip: 'Open video',
+                      tooltip: 'Открыть видео',
                       onPressed: grenade.videoUrl.isEmpty ? null : () {},
                       icon: const Icon(Icons.play_arrow_rounded),
                     ),

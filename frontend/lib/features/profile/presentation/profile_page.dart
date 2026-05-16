@@ -31,7 +31,7 @@ class ProfilePage extends StatelessWidget {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      'Player Profile',
+                      'Профиль игрока',
                       style: TextStyle(
                         fontSize: 24,
                         fontWeight: FontWeight.w900,
@@ -39,7 +39,7 @@ class ProfilePage extends StatelessWidget {
                     ),
                     SizedBox(height: 6),
                     Text(
-                      'Favorites, Dota searches and training progress.',
+                      'Избранные гранаты, поиски Dota и прогресс тренировок.',
                       style: TextStyle(color: GameMentorColors.muted),
                     ),
                   ],
@@ -54,7 +54,7 @@ class ProfilePage extends StatelessWidget {
             final compact = constraints.maxWidth < 920;
             final blocks = [
               const _ProfileBlock(
-                title: 'Favorite grenades',
+                title: 'Избранные гранаты',
                 icon: Icons.star_rounded,
                 items: [
                   'Mirage window smoke',
@@ -63,17 +63,17 @@ class ProfilePage extends StatelessWidget {
                 ],
               ),
               const _ProfileBlock(
-                title: 'Recent Dota searches',
+                title: 'Последние поиски Dota',
                 icon: Icons.history_rounded,
                 items: ['123456789', '8675309', '42424242'],
               ),
               const _ProfileBlock(
-                title: 'Training progress',
+                title: 'Прогресс тренировок',
                 icon: Icons.timeline_rounded,
                 items: [
                   'Mirage utility 68%',
                   'Inferno flashes 42%',
-                  'Hero pool 31%',
+                  'Пул героев 31%',
                 ],
               ),
             ];

@@ -85,6 +85,15 @@ func (c *Client) GetRecentMatches(ctx context.Context, accountID int64) ([]domai
 			Kills:           payload.Kills,
 			Deaths:          payload.Deaths,
 			Assists:         payload.Assists,
+			GoldPerMin:      payload.GoldPerMin,
+			XPPerMin:        payload.XPPerMin,
+			LastHits:        payload.LastHits,
+			HeroDamage:      payload.HeroDamage,
+			TowerDamage:     payload.TowerDamage,
+			HeroHealing:     payload.HeroHealing,
+			AverageRank:     payload.AverageRank,
+			PartySize:       payload.PartySize,
+			GameMode:        payload.GameMode,
 			DurationSeconds: payload.Duration,
 			StartTime:       time.Unix(payload.StartTime, 0).UTC(),
 			Raw:             raw,
@@ -133,13 +142,22 @@ type playerResponse struct {
 }
 
 type recentMatchResponse struct {
-	MatchID    int64 `json:"match_id"`
-	PlayerSlot int   `json:"player_slot"`
-	RadiantWin bool  `json:"radiant_win"`
-	Duration   int   `json:"duration"`
-	HeroID     int   `json:"hero_id"`
-	StartTime  int64 `json:"start_time"`
-	Kills      int   `json:"kills"`
-	Deaths     int   `json:"deaths"`
-	Assists    int   `json:"assists"`
+	MatchID     int64 `json:"match_id"`
+	PlayerSlot  int   `json:"player_slot"`
+	RadiantWin  bool  `json:"radiant_win"`
+	Duration    int   `json:"duration"`
+	HeroID      int   `json:"hero_id"`
+	StartTime   int64 `json:"start_time"`
+	Kills       int   `json:"kills"`
+	Deaths      int   `json:"deaths"`
+	Assists     int   `json:"assists"`
+	GoldPerMin  int   `json:"gold_per_min"`
+	XPPerMin    int   `json:"xp_per_min"`
+	LastHits    int   `json:"last_hits"`
+	HeroDamage  int   `json:"hero_damage"`
+	TowerDamage int   `json:"tower_damage"`
+	HeroHealing int   `json:"hero_healing"`
+	AverageRank *int  `json:"average_rank"`
+	PartySize   *int  `json:"party_size"`
+	GameMode    int   `json:"game_mode"`
 }

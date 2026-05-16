@@ -90,6 +90,7 @@ Dota endpoints use OpenDota by default via `OPENDOTA_BASE_URL=https://api.opendo
 - `GET /api/v1/dota/players/:account_id/summary`
 
 The summary endpoint fetches recent matches, calculates winrate, average kills/deaths/assists, KDA and top heroes, then saves a snapshot to PostgreSQL.
+The matches endpoint also exposes OpenDota economy and impact fields such as `gold_per_min`, `xp_per_min`, `last_hits`, `hero_damage`, `tower_damage`, `hero_healing`, `average_rank`, `party_size` and `game_mode` for richer frontend analytics.
 
 ## Make Commands
 
@@ -125,6 +126,13 @@ Or from the repository root:
 
 ```bash
 make frontend-run-api
+```
+
+After adding new backend migrations, restart containers so the `migrate` service runs again:
+
+```bash
+docker compose down
+docker compose up --build
 ```
 
 ## CS2 Grenade Recorder

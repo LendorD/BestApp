@@ -42,7 +42,7 @@ class _DetailContent extends StatelessWidget {
         TextButton.icon(
           onPressed: () => context.go('/cs2'),
           icon: const Icon(Icons.arrow_back_rounded),
-          label: const Text('Back to grenades'),
+          label: const Text('Назад к гранатам'),
         ),
         const SizedBox(height: 14),
         LayoutBuilder(
@@ -151,22 +151,22 @@ class _InfoPanel extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           const Text(
-            'Lineup details',
+            'Детали раскидки',
             style: TextStyle(fontSize: 20, fontWeight: FontWeight.w900),
           ),
           const SizedBox(height: 18),
           _InfoRow(
-            label: 'From',
+            label: 'Откуда',
             value: grenade.fromPosition,
             icon: Icons.place_rounded,
           ),
           _InfoRow(
-            label: 'To',
+            label: 'Куда',
             value: grenade.toPosition,
             icon: Icons.flag_rounded,
           ),
           _InfoRow(
-            label: 'Difficulty',
+            label: 'Сложность',
             value: grenade.difficulty,
             icon: Icons.speed_rounded,
           ),
@@ -189,7 +189,7 @@ class _InfoPanel extends StatelessWidget {
             child: ElevatedButton.icon(
               onPressed: grenade.videoUrl.isEmpty ? null : () {},
               icon: const Icon(Icons.play_arrow_rounded),
-              label: const Text('Watch lineup video'),
+              label: const Text('Смотреть видео раскидки'),
             ),
           ),
         ],

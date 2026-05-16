@@ -26,6 +26,15 @@ type DotaPlayerMatch struct {
 	Kills           int             `json:"kills"`
 	Deaths          int             `json:"deaths"`
 	Assists         int             `json:"assists"`
+	GoldPerMin      int             `json:"gold_per_min"`
+	XPPerMin        int             `json:"xp_per_min"`
+	LastHits        int             `json:"last_hits"`
+	HeroDamage      int             `json:"hero_damage"`
+	TowerDamage     int             `json:"tower_damage"`
+	HeroHealing     int             `json:"hero_healing"`
+	AverageRank     *int            `json:"average_rank,omitempty"`
+	PartySize       *int            `json:"party_size,omitempty"`
+	GameMode        int             `json:"game_mode"`
 	DurationSeconds int             `json:"duration_seconds"`
 	StartTime       time.Time       `json:"start_time"`
 	Raw             json.RawMessage `json:"-"`

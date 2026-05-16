@@ -355,6 +355,24 @@ mixin _$DotaMatch {
   int get kills => throw _privateConstructorUsedError;
   int get deaths => throw _privateConstructorUsedError;
   int get assists => throw _privateConstructorUsedError;
+  @JsonKey(name: 'gold_per_min')
+  int get goldPerMin => throw _privateConstructorUsedError;
+  @JsonKey(name: 'xp_per_min')
+  int get xpPerMin => throw _privateConstructorUsedError;
+  @JsonKey(name: 'last_hits')
+  int get lastHits => throw _privateConstructorUsedError;
+  @JsonKey(name: 'hero_damage')
+  int get heroDamage => throw _privateConstructorUsedError;
+  @JsonKey(name: 'tower_damage')
+  int get towerDamage => throw _privateConstructorUsedError;
+  @JsonKey(name: 'hero_healing')
+  int get heroHealing => throw _privateConstructorUsedError;
+  @JsonKey(name: 'average_rank')
+  int? get averageRank => throw _privateConstructorUsedError;
+  @JsonKey(name: 'party_size')
+  int? get partySize => throw _privateConstructorUsedError;
+  @JsonKey(name: 'game_mode')
+  int get gameMode => throw _privateConstructorUsedError;
   @JsonKey(name: 'duration_seconds')
   int get durationSeconds => throw _privateConstructorUsedError;
   @JsonKey(name: 'start_time')
@@ -385,6 +403,15 @@ abstract class $DotaMatchCopyWith<$Res> {
     int kills,
     int deaths,
     int assists,
+    @JsonKey(name: 'gold_per_min') int goldPerMin,
+    @JsonKey(name: 'xp_per_min') int xpPerMin,
+    @JsonKey(name: 'last_hits') int lastHits,
+    @JsonKey(name: 'hero_damage') int heroDamage,
+    @JsonKey(name: 'tower_damage') int towerDamage,
+    @JsonKey(name: 'hero_healing') int heroHealing,
+    @JsonKey(name: 'average_rank') int? averageRank,
+    @JsonKey(name: 'party_size') int? partySize,
+    @JsonKey(name: 'game_mode') int gameMode,
     @JsonKey(name: 'duration_seconds') int durationSeconds,
     @JsonKey(name: 'start_time') DateTime startTime,
   });
@@ -414,6 +441,15 @@ class _$DotaMatchCopyWithImpl<$Res, $Val extends DotaMatch>
     Object? kills = null,
     Object? deaths = null,
     Object? assists = null,
+    Object? goldPerMin = null,
+    Object? xpPerMin = null,
+    Object? lastHits = null,
+    Object? heroDamage = null,
+    Object? towerDamage = null,
+    Object? heroHealing = null,
+    Object? averageRank = freezed,
+    Object? partySize = freezed,
+    Object? gameMode = null,
     Object? durationSeconds = null,
     Object? startTime = null,
   }) {
@@ -455,6 +491,42 @@ class _$DotaMatchCopyWithImpl<$Res, $Val extends DotaMatch>
                 ? _value.assists
                 : assists // ignore: cast_nullable_to_non_nullable
                       as int,
+            goldPerMin: null == goldPerMin
+                ? _value.goldPerMin
+                : goldPerMin // ignore: cast_nullable_to_non_nullable
+                      as int,
+            xpPerMin: null == xpPerMin
+                ? _value.xpPerMin
+                : xpPerMin // ignore: cast_nullable_to_non_nullable
+                      as int,
+            lastHits: null == lastHits
+                ? _value.lastHits
+                : lastHits // ignore: cast_nullable_to_non_nullable
+                      as int,
+            heroDamage: null == heroDamage
+                ? _value.heroDamage
+                : heroDamage // ignore: cast_nullable_to_non_nullable
+                      as int,
+            towerDamage: null == towerDamage
+                ? _value.towerDamage
+                : towerDamage // ignore: cast_nullable_to_non_nullable
+                      as int,
+            heroHealing: null == heroHealing
+                ? _value.heroHealing
+                : heroHealing // ignore: cast_nullable_to_non_nullable
+                      as int,
+            averageRank: freezed == averageRank
+                ? _value.averageRank
+                : averageRank // ignore: cast_nullable_to_non_nullable
+                      as int?,
+            partySize: freezed == partySize
+                ? _value.partySize
+                : partySize // ignore: cast_nullable_to_non_nullable
+                      as int?,
+            gameMode: null == gameMode
+                ? _value.gameMode
+                : gameMode // ignore: cast_nullable_to_non_nullable
+                      as int,
             durationSeconds: null == durationSeconds
                 ? _value.durationSeconds
                 : durationSeconds // ignore: cast_nullable_to_non_nullable
@@ -488,6 +560,15 @@ abstract class _$$DotaMatchImplCopyWith<$Res>
     int kills,
     int deaths,
     int assists,
+    @JsonKey(name: 'gold_per_min') int goldPerMin,
+    @JsonKey(name: 'xp_per_min') int xpPerMin,
+    @JsonKey(name: 'last_hits') int lastHits,
+    @JsonKey(name: 'hero_damage') int heroDamage,
+    @JsonKey(name: 'tower_damage') int towerDamage,
+    @JsonKey(name: 'hero_healing') int heroHealing,
+    @JsonKey(name: 'average_rank') int? averageRank,
+    @JsonKey(name: 'party_size') int? partySize,
+    @JsonKey(name: 'game_mode') int gameMode,
     @JsonKey(name: 'duration_seconds') int durationSeconds,
     @JsonKey(name: 'start_time') DateTime startTime,
   });
@@ -516,6 +597,15 @@ class __$$DotaMatchImplCopyWithImpl<$Res>
     Object? kills = null,
     Object? deaths = null,
     Object? assists = null,
+    Object? goldPerMin = null,
+    Object? xpPerMin = null,
+    Object? lastHits = null,
+    Object? heroDamage = null,
+    Object? towerDamage = null,
+    Object? heroHealing = null,
+    Object? averageRank = freezed,
+    Object? partySize = freezed,
+    Object? gameMode = null,
     Object? durationSeconds = null,
     Object? startTime = null,
   }) {
@@ -557,6 +647,42 @@ class __$$DotaMatchImplCopyWithImpl<$Res>
             ? _value.assists
             : assists // ignore: cast_nullable_to_non_nullable
                   as int,
+        goldPerMin: null == goldPerMin
+            ? _value.goldPerMin
+            : goldPerMin // ignore: cast_nullable_to_non_nullable
+                  as int,
+        xpPerMin: null == xpPerMin
+            ? _value.xpPerMin
+            : xpPerMin // ignore: cast_nullable_to_non_nullable
+                  as int,
+        lastHits: null == lastHits
+            ? _value.lastHits
+            : lastHits // ignore: cast_nullable_to_non_nullable
+                  as int,
+        heroDamage: null == heroDamage
+            ? _value.heroDamage
+            : heroDamage // ignore: cast_nullable_to_non_nullable
+                  as int,
+        towerDamage: null == towerDamage
+            ? _value.towerDamage
+            : towerDamage // ignore: cast_nullable_to_non_nullable
+                  as int,
+        heroHealing: null == heroHealing
+            ? _value.heroHealing
+            : heroHealing // ignore: cast_nullable_to_non_nullable
+                  as int,
+        averageRank: freezed == averageRank
+            ? _value.averageRank
+            : averageRank // ignore: cast_nullable_to_non_nullable
+                  as int?,
+        partySize: freezed == partySize
+            ? _value.partySize
+            : partySize // ignore: cast_nullable_to_non_nullable
+                  as int?,
+        gameMode: null == gameMode
+            ? _value.gameMode
+            : gameMode // ignore: cast_nullable_to_non_nullable
+                  as int,
         durationSeconds: null == durationSeconds
             ? _value.durationSeconds
             : durationSeconds // ignore: cast_nullable_to_non_nullable
@@ -583,6 +709,15 @@ class _$DotaMatchImpl implements _DotaMatch {
     required this.kills,
     required this.deaths,
     required this.assists,
+    @JsonKey(name: 'gold_per_min') this.goldPerMin = 0,
+    @JsonKey(name: 'xp_per_min') this.xpPerMin = 0,
+    @JsonKey(name: 'last_hits') this.lastHits = 0,
+    @JsonKey(name: 'hero_damage') this.heroDamage = 0,
+    @JsonKey(name: 'tower_damage') this.towerDamage = 0,
+    @JsonKey(name: 'hero_healing') this.heroHealing = 0,
+    @JsonKey(name: 'average_rank') this.averageRank,
+    @JsonKey(name: 'party_size') this.partySize,
+    @JsonKey(name: 'game_mode') this.gameMode = 0,
     @JsonKey(name: 'duration_seconds') required this.durationSeconds,
     @JsonKey(name: 'start_time') required this.startTime,
   });
@@ -614,6 +749,33 @@ class _$DotaMatchImpl implements _DotaMatch {
   @override
   final int assists;
   @override
+  @JsonKey(name: 'gold_per_min')
+  final int goldPerMin;
+  @override
+  @JsonKey(name: 'xp_per_min')
+  final int xpPerMin;
+  @override
+  @JsonKey(name: 'last_hits')
+  final int lastHits;
+  @override
+  @JsonKey(name: 'hero_damage')
+  final int heroDamage;
+  @override
+  @JsonKey(name: 'tower_damage')
+  final int towerDamage;
+  @override
+  @JsonKey(name: 'hero_healing')
+  final int heroHealing;
+  @override
+  @JsonKey(name: 'average_rank')
+  final int? averageRank;
+  @override
+  @JsonKey(name: 'party_size')
+  final int? partySize;
+  @override
+  @JsonKey(name: 'game_mode')
+  final int gameMode;
+  @override
   @JsonKey(name: 'duration_seconds')
   final int durationSeconds;
   @override
@@ -622,7 +784,7 @@ class _$DotaMatchImpl implements _DotaMatch {
 
   @override
   String toString() {
-    return 'DotaMatch(matchId: $matchId, accountId: $accountId, playerSlot: $playerSlot, radiantWin: $radiantWin, won: $won, heroId: $heroId, kills: $kills, deaths: $deaths, assists: $assists, durationSeconds: $durationSeconds, startTime: $startTime)';
+    return 'DotaMatch(matchId: $matchId, accountId: $accountId, playerSlot: $playerSlot, radiantWin: $radiantWin, won: $won, heroId: $heroId, kills: $kills, deaths: $deaths, assists: $assists, goldPerMin: $goldPerMin, xpPerMin: $xpPerMin, lastHits: $lastHits, heroDamage: $heroDamage, towerDamage: $towerDamage, heroHealing: $heroHealing, averageRank: $averageRank, partySize: $partySize, gameMode: $gameMode, durationSeconds: $durationSeconds, startTime: $startTime)';
   }
 
   @override
@@ -642,6 +804,24 @@ class _$DotaMatchImpl implements _DotaMatch {
             (identical(other.kills, kills) || other.kills == kills) &&
             (identical(other.deaths, deaths) || other.deaths == deaths) &&
             (identical(other.assists, assists) || other.assists == assists) &&
+            (identical(other.goldPerMin, goldPerMin) ||
+                other.goldPerMin == goldPerMin) &&
+            (identical(other.xpPerMin, xpPerMin) ||
+                other.xpPerMin == xpPerMin) &&
+            (identical(other.lastHits, lastHits) ||
+                other.lastHits == lastHits) &&
+            (identical(other.heroDamage, heroDamage) ||
+                other.heroDamage == heroDamage) &&
+            (identical(other.towerDamage, towerDamage) ||
+                other.towerDamage == towerDamage) &&
+            (identical(other.heroHealing, heroHealing) ||
+                other.heroHealing == heroHealing) &&
+            (identical(other.averageRank, averageRank) ||
+                other.averageRank == averageRank) &&
+            (identical(other.partySize, partySize) ||
+                other.partySize == partySize) &&
+            (identical(other.gameMode, gameMode) ||
+                other.gameMode == gameMode) &&
             (identical(other.durationSeconds, durationSeconds) ||
                 other.durationSeconds == durationSeconds) &&
             (identical(other.startTime, startTime) ||
@@ -650,7 +830,7 @@ class _$DotaMatchImpl implements _DotaMatch {
 
   @JsonKey(includeFromJson: false, includeToJson: false)
   @override
-  int get hashCode => Object.hash(
+  int get hashCode => Object.hashAll([
     runtimeType,
     matchId,
     accountId,
@@ -661,9 +841,18 @@ class _$DotaMatchImpl implements _DotaMatch {
     kills,
     deaths,
     assists,
+    goldPerMin,
+    xpPerMin,
+    lastHits,
+    heroDamage,
+    towerDamage,
+    heroHealing,
+    averageRank,
+    partySize,
+    gameMode,
     durationSeconds,
     startTime,
-  );
+  ]);
 
   /// Create a copy of DotaMatch
   /// with the given fields replaced by the non-null parameter values.
@@ -690,6 +879,15 @@ abstract class _DotaMatch implements DotaMatch {
     required final int kills,
     required final int deaths,
     required final int assists,
+    @JsonKey(name: 'gold_per_min') final int goldPerMin,
+    @JsonKey(name: 'xp_per_min') final int xpPerMin,
+    @JsonKey(name: 'last_hits') final int lastHits,
+    @JsonKey(name: 'hero_damage') final int heroDamage,
+    @JsonKey(name: 'tower_damage') final int towerDamage,
+    @JsonKey(name: 'hero_healing') final int heroHealing,
+    @JsonKey(name: 'average_rank') final int? averageRank,
+    @JsonKey(name: 'party_size') final int? partySize,
+    @JsonKey(name: 'game_mode') final int gameMode,
     @JsonKey(name: 'duration_seconds') required final int durationSeconds,
     @JsonKey(name: 'start_time') required final DateTime startTime,
   }) = _$DotaMatchImpl;
@@ -720,6 +918,33 @@ abstract class _DotaMatch implements DotaMatch {
   int get deaths;
   @override
   int get assists;
+  @override
+  @JsonKey(name: 'gold_per_min')
+  int get goldPerMin;
+  @override
+  @JsonKey(name: 'xp_per_min')
+  int get xpPerMin;
+  @override
+  @JsonKey(name: 'last_hits')
+  int get lastHits;
+  @override
+  @JsonKey(name: 'hero_damage')
+  int get heroDamage;
+  @override
+  @JsonKey(name: 'tower_damage')
+  int get towerDamage;
+  @override
+  @JsonKey(name: 'hero_healing')
+  int get heroHealing;
+  @override
+  @JsonKey(name: 'average_rank')
+  int? get averageRank;
+  @override
+  @JsonKey(name: 'party_size')
+  int? get partySize;
+  @override
+  @JsonKey(name: 'game_mode')
+  int get gameMode;
   @override
   @JsonKey(name: 'duration_seconds')
   int get durationSeconds;

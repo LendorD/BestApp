@@ -10,22 +10,22 @@ class TrainingPlansPage extends StatelessWidget {
   Widget build(BuildContext context) {
     final plans = [
       _TrainingPlan(
-        title: 'Mirage Smoke Practice',
-        subtitle: '20-minute utility loop for mid and A executes.',
+        title: 'Практика смоков Mirage',
+        subtitle: '20 минут раскидок для мида и A execute.',
         progress: 0.68,
         color: GameMentorColors.purple,
         icon: Icons.cloud_rounded,
       ),
       _TrainingPlan(
-        title: 'Inferno Flash Routine',
-        subtitle: 'Banana control, brackets retake, and pop-flash timings.',
+        title: 'Флеши Inferno',
+        subtitle: 'Контроль банана, ретейк brackets и тайминги pop-flash.',
         progress: 0.42,
         color: GameMentorColors.blue,
         icon: Icons.wb_sunny_rounded,
       ),
       _TrainingPlan(
-        title: 'Dota Hero Pool Improvement',
-        subtitle: 'Reduce variance with a compact ranked hero pool.',
+        title: 'Пул героев Dota',
+        subtitle: 'Снижаем разброс результатов через компактный ranked-пул.',
         progress: 0.31,
         color: GameMentorColors.green,
         icon: Icons.auto_graph_rounded,
@@ -36,14 +36,14 @@ class TrainingPlansPage extends StatelessWidget {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(
-          'Training Plans',
+          'План тренировок',
           style: Theme.of(
             context,
           ).textTheme.headlineMedium?.copyWith(fontWeight: FontWeight.w900),
         ),
         const SizedBox(height: 8),
         const Text(
-          'Mock routines today, personalized coaching paths tomorrow.',
+          'Пока mock-рутины, дальше — персональные планы по статистике.',
           style: TextStyle(color: GameMentorColors.muted),
         ),
         const SizedBox(height: 22),

@@ -133,12 +133,12 @@ class _ModeBadge extends StatelessWidget {
           ),
           const SizedBox(height: 10),
           Text(
-            mockMode ? 'Mock mode active' : 'API mode active',
+            mockMode ? 'Mock-режим' : 'API-режим',
             style: const TextStyle(fontWeight: FontWeight.w800),
           ),
           const SizedBox(height: 6),
           Text(
-            mockMode ? 'Local demo data is used.' : AppConfig.apiBaseUrl,
+            mockMode ? 'Используются демо-данные.' : AppConfig.apiBaseUrl,
             style: const TextStyle(color: GameMentorColors.muted, height: 1.35),
           ),
         ],
@@ -294,19 +294,19 @@ class _NavItem {
 }
 
 const _navItems = [
-  _NavItem('Home', 'Home', '/', Icons.grid_view_rounded),
-  _NavItem('CS2 Grenades', 'CS2', '/cs2', Icons.track_changes_rounded),
-  _NavItem('Dota 2 Stats', 'Dota', '/dota', Icons.query_stats_rounded),
+  _NavItem('Главная', 'Главная', '/', Icons.grid_view_rounded),
+  _NavItem('Гранаты CS2', 'CS2', '/cs2', Icons.track_changes_rounded),
+  _NavItem('Статистика Dota 2', 'Dota', '/dota', Icons.query_stats_rounded),
   _NavItem(
-    'Training Plans',
-    'Train',
+    'План тренировок',
+    'Тренинг',
     '/training',
     Icons.fitness_center_rounded,
   ),
-  _NavItem('Profile', 'Profile', '/profile', Icons.person_rounded),
+  _NavItem('Профиль', 'Профиль', '/profile', Icons.person_rounded),
   _NavItem(
-    'Admin Panel',
-    'Admin',
+    'Админ-панель',
+    'Админ',
     '/admin',
     Icons.admin_panel_settings_rounded,
   ),

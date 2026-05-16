@@ -71,7 +71,7 @@ class MockDotaStatsApi implements DotaStatsApi {
     await Future<void>.delayed(const Duration(milliseconds: 360));
     return DotaPlayer(
       accountId: accountId,
-      personaName: 'Midnight Coach',
+      personaName: 'Игрок GameMentor',
       avatarFull:
           'https://images.unsplash.com/photo-1560253023-3ec5d502959f?auto=format&fit=crop&w=400&q=80',
       profileUrl: 'https://www.opendota.com/players/$accountId',
@@ -96,6 +96,15 @@ class MockDotaStatsApi implements DotaStatsApi {
         kills: 4 + (index * 2) % 14,
         deaths: 2 + index % 8,
         assists: 7 + (index * 3) % 18,
+        goldPerMin: 420 + (index * 37) % 260,
+        xpPerMin: 510 + (index * 41) % 310,
+        lastHits: 80 + (index * 23) % 220,
+        heroDamage: 9000 + index * 1450,
+        towerDamage: index.isEven ? 1200 + index * 320 : index * 90,
+        heroHealing: index % 4 == 0 ? 2800 + index * 140 : 0,
+        averageRank: 65,
+        partySize: index % 3 == 0 ? 2 : null,
+        gameMode: 22,
         durationSeconds: 1850 + index * 73,
         startTime: _now.subtract(Duration(days: index, hours: index * 2)),
       );

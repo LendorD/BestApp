@@ -45,13 +45,15 @@ flutter test
 
 ## Pages
 
-- `/` Home
-- `/cs2` CS2 Grenades
-- `/cs2/:id` CS2 grenade detail
-- `/dota` Dota 2 Stats
-- `/training` Training Plans
-- `/profile` Profile
-- `/admin` Admin Panel
+- `/` Главная
+- `/cs2` Гранаты CS2
+- `/cs2/:id` Детальная страница гранаты
+- `/dota` Статистика Dota 2
+- `/training` План тренировок
+- `/profile` Профиль
+- `/admin` Админ-панель
+
+The Dota page supports period switching, hero images from Steam CDN, rank explanation and extended OpenDota metrics.
 
 ## API Mode
 

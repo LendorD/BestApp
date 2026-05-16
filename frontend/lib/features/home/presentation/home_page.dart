@@ -51,7 +51,7 @@ class _HeroSection extends StatelessWidget {
         borderRadius: BorderRadius.circular(28),
         image: const DecorationImage(
           image: NetworkImage(
-            'https://images.unsplash.com/photo-1542751110-97427bbecf20?auto=format&fit=crop&w=1800&q=80',
+            'https://cdn.cloudflare.steamstatic.com/apps/csgo/images/csgo_react/social/cs2.jpg',
           ),
           fit: BoxFit.cover,
           opacity: 0.28,
@@ -85,7 +85,7 @@ class _HeroSection extends StatelessWidget {
                   ),
                 ),
                 child: const Text(
-                  'CS2 utility database + Dota 2 analytics',
+                  'Гранаты CS2 + аналитика Dota 2',
                   style: TextStyle(
                     color: GameMentorColors.green,
                     fontWeight: FontWeight.w900,
@@ -94,7 +94,7 @@ class _HeroSection extends StatelessWidget {
               ),
               const SizedBox(height: 18),
               Text(
-                'Master CS2 Utility & Dota 2 Decisions',
+                'Тренируй гранаты CS2 и решения в Dota 2',
                 style: Theme.of(context).textTheme.displayMedium?.copyWith(
                   fontWeight: FontWeight.w900,
                   height: 1.02,
@@ -102,7 +102,7 @@ class _HeroSection extends StatelessWidget {
               ),
               const SizedBox(height: 16),
               const Text(
-                'Train exact CS2 lineups, analyze your Dota profile, and turn match history into focused practice recommendations.',
+                'Изучай точные раскидки, анализируй профиль OpenDota и превращай историю матчей в понятный план тренировки.',
                 style: TextStyle(
                   color: GameMentorColors.muted,
                   fontSize: 18,
@@ -117,7 +117,7 @@ class _HeroSection extends StatelessWidget {
                   ElevatedButton.icon(
                     onPressed: () => context.go('/cs2'),
                     icon: const Icon(Icons.track_changes_rounded),
-                    label: const Text('Explore grenades'),
+                    label: const Text('Открыть гранаты'),
                   ),
                   OutlinedButton.icon(
                     onPressed: () {
@@ -127,7 +127,7 @@ class _HeroSection extends StatelessWidget {
                       );
                     },
                     icon: const Icon(Icons.query_stats_rounded),
-                    label: const Text('Analyze Dota'),
+                    label: const Text('Анализ Dota'),
                   ),
                 ],
               ),
@@ -158,17 +158,21 @@ class _FeatureCards extends StatelessWidget {
           childAspectRatio: columns == 2 ? 1.9 : 1.25,
           children: [
             _BigFeatureCard(
-              title: 'CS2 Grenades',
-              label: 'Lineups, tags, maps',
+              title: 'Гранаты CS2',
+              label: 'Карты, позиции, сложность',
               icon: Icons.radar_rounded,
               colors: const [GameMentorColors.purple, GameMentorColors.blue],
+              imageUrl:
+                  'https://cdn.cloudflare.steamstatic.com/apps/csgo/images/csgo_react//cs2/header_ctt.png',
               onTap: () => context.go('/cs2'),
             ),
             _BigFeatureCard(
-              title: 'Dota 2 Analytics',
-              label: 'Winrate, KDA, heroes',
+              title: 'Аналитика Dota 2',
+              label: 'Винрейт, KDA, герои',
               icon: Icons.auto_graph_rounded,
               colors: const [GameMentorColors.green, GameMentorColors.blue],
+              imageUrl:
+                  'https://cdn.cloudflare.steamstatic.com/apps/dota2/images/dota_react/heroes/social/invoker.jpg',
               onTap: () {
                 final value = accountController.text.trim();
                 context.go(value.isEmpty ? '/dota' : '/dota?account_id=$value');
@@ -188,6 +192,7 @@ class _BigFeatureCard extends StatelessWidget {
     required this.icon,
     required this.colors,
     required this.onTap,
+    this.imageUrl,
   });
 
   final String title;
@@ -195,6 +200,7 @@ class _BigFeatureCard extends StatelessWidget {
   final IconData icon;
   final List<Color> colors;
   final VoidCallback onTap;
+  final String? imageUrl;
 
   @override
   Widget build(BuildContext context) {
@@ -206,25 +212,37 @@ class _BigFeatureCard extends StatelessWidget {
           colors.last.withValues(alpha: 0.12),
         ],
       ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+      child: Stack(
+        fit: StackFit.expand,
         children: [
-          Icon(icon, color: colors.first, size: 42),
+          if (imageUrl != null)
+            Positioned.fill(
+              child: Opacity(
+                opacity: 0.18,
+                child: Image.network(imageUrl!, fit: BoxFit.cover),
+              ),
+            ),
           Column(
             crossAxisAlignment: CrossAxisAlignment.start,
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              Text(
-                title,
-                style: const TextStyle(
-                  fontSize: 24,
-                  fontWeight: FontWeight.w900,
-                ),
-              ),
-              const SizedBox(height: 8),
-              Text(
-                label,
-                style: const TextStyle(color: GameMentorColors.muted),
+              Icon(icon, color: colors.first, size: 42),
+              Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    title,
+                    style: const TextStyle(
+                      fontSize: 24,
+                      fontWeight: FontWeight.w900,
+                    ),
+                  ),
+                  const SizedBox(height: 8),
+                  Text(
+                    label,
+                    style: const TextStyle(color: GameMentorColors.muted),
+                  ),
+                ],
               ),
             ],
           ),
@@ -240,15 +258,15 @@ class _HowItWorks extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final items = [
-      ('Pick a skill gap', 'Choose map utility or Dota profile analysis.'),
-      ('Review the signal', 'Study lineups, stats and top hero patterns.'),
-      ('Train the next rep', 'Move into a practice plan with clear focus.'),
+      ('Выбери слабое место', 'CS2 utility или анализ профиля Dota 2.'),
+      ('Посмотри сигнал', 'Карты, герои, KDA, экономика и частые ошибки.'),
+      ('Закрепи тренировкой', 'Переходи к короткому плану практики.'),
     ];
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        const _SectionTitle('How it works'),
+        const _SectionTitle('Как это работает'),
         const SizedBox(height: 14),
         LayoutBuilder(
           builder: (context, constraints) {
@@ -313,7 +331,7 @@ class _PopularMaps extends StatelessWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        const _SectionTitle('Popular CS2 maps'),
+        const _SectionTitle('Популярные карты CS2'),
         const SizedBox(height: 14),
         AppCard(
           child: Wrap(
@@ -358,7 +376,7 @@ class _PopularMaps extends StatelessWidget {
                   );
                 },
                 icon: const Icon(Icons.search_rounded),
-                label: const Text('Analyze your Dota profile'),
+                label: const Text('Проанализировать Dota профиль'),
               );
               return compact
                   ? Column(

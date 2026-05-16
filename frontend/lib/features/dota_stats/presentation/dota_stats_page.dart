@@ -8,6 +8,7 @@ import '../../../core/widgets/empty_state.dart';
 import '../../../core/widgets/error_state.dart';
 import '../../../core/widgets/loading_state.dart';
 import '../data/dota_stats_providers.dart';
+import '../domain/dota_heroes.dart';
 import '../domain/dota_models.dart';
 
 class DotaStatsPage extends ConsumerStatefulWidget {
@@ -21,6 +22,7 @@ class DotaStatsPage extends ConsumerStatefulWidget {
 
 class _DotaStatsPageState extends ConsumerState<DotaStatsPage> {
   late final TextEditingController _controller;
+  DotaStatsPeriod _period = DotaStatsPeriod.recent;
 
   @override
   void initState() {
@@ -43,9 +45,9 @@ class _DotaStatsPageState extends ConsumerState<DotaStatsPage> {
   void _analyze() {
     final accountId = int.tryParse(_controller.text.trim());
     if (accountId == null || accountId <= 0) {
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(const SnackBar(content: Text('Enter a valid account ID')));
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Введите корректный OpenDota account ID')),
+      );
       return;
     }
     ref.read(dotaAccountIdProvider.notifier).state = accountId;
@@ -67,19 +69,19 @@ class _DotaStatsPageState extends ConsumerState<DotaStatsPage> {
           ),
           child: LayoutBuilder(
             builder: (context, constraints) {
-              final compact = constraints.maxWidth < 760;
+              final compact = constraints.maxWidth < 820;
               final title = Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
-                    'Dota 2 Stats',
+                    'Статистика Dota 2',
                     style: Theme.of(context).textTheme.headlineMedium?.copyWith(
                       fontWeight: FontWeight.w900,
                     ),
                   ),
                   const SizedBox(height: 8),
                   const Text(
-                    'Analyze recent matches, hero patterns and decision quality.',
+                    'Профиль, последние матчи, герои, экономика и подсказки для тренировки.',
                     style: TextStyle(
                       color: GameMentorColors.muted,
                       height: 1.45,
@@ -104,7 +106,7 @@ class _DotaStatsPageState extends ConsumerState<DotaStatsPage> {
                   ElevatedButton.icon(
                     onPressed: _analyze,
                     icon: const Icon(Icons.analytics_rounded),
-                    label: const Text('Analyze'),
+                    label: const Text('Анализ'),
                   ),
                 ],
               );
@@ -129,13 +131,19 @@ class _DotaStatsPageState extends ConsumerState<DotaStatsPage> {
           data: (data) {
             if (data == null) {
               return const EmptyState(
-                title: 'Ready when you are',
+                title: 'Готов к анализу',
                 message:
-                    'Enter a Dota account ID to fetch profile, recent matches and summary.',
+                    'Введите OpenDota account ID, чтобы загрузить профиль, матчи и статистику.',
                 icon: Icons.query_stats_rounded,
               );
             }
-            return _AnalysisContent(analysis: data);
+            final stats = DotaComputedStats.fromMatches(data.matches, _period);
+            return _AnalysisContent(
+              analysis: data,
+              stats: stats,
+              period: _period,
+              onPeriodChanged: (value) => setState(() => _period = value),
+            );
           },
           loading: () => const LoadingState(rows: 6),
           error: (error, _) => ErrorState(
@@ -149,23 +157,33 @@ class _DotaStatsPageState extends ConsumerState<DotaStatsPage> {
 }
 
 class _AnalysisContent extends StatelessWidget {
-  const _AnalysisContent({required this.analysis});
+  const _AnalysisContent({
+    required this.analysis,
+    required this.stats,
+    required this.period,
+    required this.onPeriodChanged,
+  });
 
   final DotaAnalysis analysis;
+  final DotaComputedStats stats;
+  final DotaStatsPeriod period;
+  final ValueChanged<DotaStatsPeriod> onPeriodChanged;
 
   @override
   Widget build(BuildContext context) {
     return Column(
       children: [
-        _ProfileSummary(player: analysis.player, summary: analysis.summary),
+        _ProfileSummary(player: analysis.player, stats: stats),
         const SizedBox(height: 18),
-        _StatsGrid(summary: analysis.summary),
+        _PeriodSelector(selected: period, onChanged: onPeriodChanged),
+        const SizedBox(height: 18),
+        _StatsGrid(stats: stats),
         const SizedBox(height: 18),
         LayoutBuilder(
           builder: (context, constraints) {
             final compact = constraints.maxWidth < 980;
-            final heroes = _TopHeroes(heroes: analysis.summary.topHeroes);
-            final recommendations = _Recommendations(summary: analysis.summary);
+            final heroes = _TopHeroes(heroes: stats.topHeroes);
+            final recommendations = _Recommendations(stats: stats);
             return compact
                 ? Column(
                     children: [
@@ -185,20 +203,21 @@ class _AnalysisContent extends StatelessWidget {
           },
         ),
         const SizedBox(height: 18),
-        _MatchesTable(matches: analysis.matches),
+        _MatchesTable(matches: stats.filteredMatches),
       ],
     );
   }
 }
 
 class _ProfileSummary extends StatelessWidget {
-  const _ProfileSummary({required this.player, required this.summary});
+  const _ProfileSummary({required this.player, required this.stats});
 
   final DotaPlayer player;
-  final DotaSummary summary;
+  final DotaComputedStats stats;
 
   @override
   Widget build(BuildContext context) {
+    final rank = rankLabel(player.rankTier);
     return AppCard(
       child: Row(
         children: [
@@ -219,7 +238,7 @@ class _ProfileSummary extends StatelessWidget {
               children: [
                 Text(
                   player.personaName.isEmpty
-                      ? 'Dota Player ${player.accountId}'
+                      ? 'Игрок ${player.accountId}'
                       : player.personaName,
                   style: const TextStyle(
                     fontSize: 22,
@@ -228,19 +247,19 @@ class _ProfileSummary extends StatelessWidget {
                 ),
                 const SizedBox(height: 6),
                 Text(
-                  'Account ${player.accountId} · ${summary.matches} recent matches',
+                  'Account ${player.accountId} · ${stats.matches} матчей в выбранном срезе',
                   style: const TextStyle(color: GameMentorColors.muted),
                 ),
               ],
             ),
           ),
           if (MediaQuery.sizeOf(context).width > 640)
-            Chip(
-              avatar: const Icon(Icons.military_tech_rounded, size: 18),
-              label: Text(
-                player.rankTier == null
-                    ? 'Rank unknown'
-                    : 'Rank ${player.rankTier}',
+            Tooltip(
+              message:
+                  'rank_tier OpenDota: первая цифра — медаль, вторая — звезда. 80 = Immortal.',
+              child: Chip(
+                avatar: const Icon(Icons.military_tech_rounded, size: 18),
+                label: Text(rank),
               ),
             ),
         ],
@@ -249,52 +268,146 @@ class _ProfileSummary extends StatelessWidget {
   }
 }
 
-class _StatsGrid extends StatelessWidget {
-  const _StatsGrid({required this.summary});
+class _PeriodSelector extends StatelessWidget {
+  const _PeriodSelector({required this.selected, required this.onChanged});
 
-  final DotaSummary summary;
+  final DotaStatsPeriod selected;
+  final ValueChanged<DotaStatsPeriod> onChanged;
 
   @override
   Widget build(BuildContext context) {
-    final stats = [
-      (
-        'Winrate',
-        '${summary.winrate.toStringAsFixed(1)}%',
+    return AppCard(
+      padding: const EdgeInsets.all(14),
+      child: Row(
+        children: [
+          const Icon(Icons.date_range_rounded, color: GameMentorColors.green),
+          const SizedBox(width: 12),
+          const Expanded(
+            child: Text(
+              'Период расчёта статистики',
+              style: TextStyle(fontWeight: FontWeight.w900),
+            ),
+          ),
+          Wrap(
+            spacing: 8,
+            runSpacing: 8,
+            children: [
+              for (final period in DotaStatsPeriod.values)
+                ChoiceChip(
+                  selected: selected == period,
+                  label: Text(period.label),
+                  onSelected: (_) => onChanged(period),
+                ),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _StatsGrid extends StatelessWidget {
+  const _StatsGrid({required this.stats});
+
+  final DotaComputedStats stats;
+
+  @override
+  Widget build(BuildContext context) {
+    final values = [
+      _StatValue(
+        'Матчи',
+        stats.matches.toString(),
+        Icons.sports_esports_rounded,
+        GameMentorColors.blue,
+      ),
+      _StatValue(
+        'Винрейт',
+        '${stats.winrate.toStringAsFixed(1)}%',
         Icons.percent_rounded,
         GameMentorColors.green,
       ),
-      (
+      _StatValue(
+        'Победы / поражения',
+        '${stats.wins}/${stats.losses}',
+        Icons.emoji_events_rounded,
+        GameMentorColors.amber,
+      ),
+      _StatValue(
         'KDA',
-        summary.kda.toStringAsFixed(2),
+        stats.kda.toStringAsFixed(2),
         Icons.trending_up_rounded,
         GameMentorColors.purple,
       ),
-      (
-        'Avg kills',
-        summary.averageKills.toStringAsFixed(1),
+      _StatValue(
+        'Убийства',
+        stats.averageKills.toStringAsFixed(1),
         Icons.flash_on_rounded,
         GameMentorColors.blue,
       ),
-      (
-        'Avg deaths',
-        summary.averageDeaths.toStringAsFixed(1),
+      _StatValue(
+        'Смерти',
+        stats.averageDeaths.toStringAsFixed(1),
         Icons.shield_rounded,
         GameMentorColors.red,
       ),
-      (
-        'Avg assists',
-        summary.averageAssists.toStringAsFixed(1),
+      _StatValue(
+        'Ассисты',
+        stats.averageAssists.toStringAsFixed(1),
         Icons.groups_rounded,
         GameMentorColors.amber,
+      ),
+      _StatValue(
+        'GPM',
+        stats.averageGpm.toStringAsFixed(0),
+        Icons.paid_rounded,
+        GameMentorColors.green,
+      ),
+      _StatValue(
+        'XPM',
+        stats.averageXpm.toStringAsFixed(0),
+        Icons.auto_awesome_rounded,
+        GameMentorColors.blue,
+      ),
+      _StatValue(
+        'Ластхиты',
+        stats.averageLastHits.toStringAsFixed(0),
+        Icons.my_location_rounded,
+        GameMentorColors.purple,
+      ),
+      _StatValue(
+        'Урон героям',
+        stats.averageHeroDamage.toStringAsFixed(0),
+        Icons.local_fire_department_rounded,
+        GameMentorColors.red,
+      ),
+      _StatValue(
+        'Урон башням',
+        stats.averageTowerDamage.toStringAsFixed(0),
+        Icons.account_balance_rounded,
+        GameMentorColors.amber,
+      ),
+      _StatValue(
+        'Лечение',
+        stats.averageHeroHealing.toStringAsFixed(0),
+        Icons.healing_rounded,
+        GameMentorColors.green,
+      ),
+      _StatValue(
+        'Длительность',
+        '${stats.averageDurationMinutes.toStringAsFixed(0)} мин',
+        Icons.timer_rounded,
+        GameMentorColors.muted,
       ),
     ];
 
     return LayoutBuilder(
       builder: (context, constraints) {
-        final columns = constraints.maxWidth > 1100
-            ? 5
-            : constraints.maxWidth > 720
-            ? 3
+        final columns = constraints.maxWidth > 1180
+            ? 6
+            : constraints.maxWidth > 900
+            ? 4
+            : constraints.maxWidth > 620
+            ? 2
             : 1;
         return GridView.count(
           shrinkWrap: true,
@@ -302,24 +415,26 @@ class _StatsGrid extends StatelessWidget {
           crossAxisCount: columns,
           crossAxisSpacing: 14,
           mainAxisSpacing: 14,
-          childAspectRatio: columns == 1 ? 3.2 : 1.4,
+          childAspectRatio: columns == 1 ? 3.4 : 1.25,
           children: [
-            for (final stat in stats)
+            for (final stat in values)
               AppCard(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    Icon(stat.$3, color: stat.$4),
+                    Icon(stat.icon, color: stat.color),
                     Text(
-                      stat.$2,
+                      stat.value,
                       style: const TextStyle(
-                        fontSize: 28,
+                        fontSize: 26,
                         fontWeight: FontWeight.w900,
                       ),
                     ),
                     Text(
-                      stat.$1,
+                      stat.label,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
                       style: const TextStyle(color: GameMentorColors.muted),
                     ),
                   ],
@@ -344,44 +459,48 @@ class _TopHeroes extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           const Text(
-            'Top heroes',
+            'Лучшие герои',
             style: TextStyle(fontSize: 20, fontWeight: FontWeight.w900),
           ),
           const SizedBox(height: 16),
-          for (final hero in heroes)
-            Padding(
-              padding: const EdgeInsets.only(bottom: 14),
-              child: Row(
-                children: [
-                  CircleAvatar(
-                    backgroundColor: GameMentorColors.purple.withValues(
-                      alpha: 0.18,
+          if (heroes.isEmpty)
+            const Text(
+              'В выбранном периоде нет матчей.',
+              style: TextStyle(color: GameMentorColors.muted),
+            )
+          else
+            for (final hero in heroes)
+              Padding(
+                padding: const EdgeInsets.only(bottom: 14),
+                child: Row(
+                  children: [
+                    _HeroAvatar(heroId: hero.heroId),
+                    const SizedBox(width: 12),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            heroInfoById(hero.heroId)?.nameRu ??
+                                'Герой ${hero.heroId}',
+                            style: const TextStyle(fontWeight: FontWeight.w900),
+                          ),
+                          Text(
+                            '${hero.matches} матчей · ${hero.wins} побед',
+                            style: const TextStyle(
+                              color: GameMentorColors.muted,
+                            ),
+                          ),
+                        ],
+                      ),
                     ),
-                    child: Text(hero.heroId.toString()),
-                  ),
-                  const SizedBox(width: 12),
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          'Hero ${hero.heroId}',
-                          style: const TextStyle(fontWeight: FontWeight.w900),
-                        ),
-                        Text(
-                          '${hero.matches} matches · ${hero.wins} wins',
-                          style: const TextStyle(color: GameMentorColors.muted),
-                        ),
-                      ],
+                    Text(
+                      '${hero.winrate.toStringAsFixed(0)}%',
+                      style: const TextStyle(fontWeight: FontWeight.w900),
                     ),
-                  ),
-                  Text(
-                    '${hero.winrate.toStringAsFixed(0)}%',
-                    style: const TextStyle(fontWeight: FontWeight.w900),
-                  ),
-                ],
+                  ],
+                ),
               ),
-            ),
         ],
       ),
     );
@@ -389,20 +508,24 @@ class _TopHeroes extends StatelessWidget {
 }
 
 class _Recommendations extends StatelessWidget {
-  const _Recommendations({required this.summary});
+  const _Recommendations({required this.stats});
 
-  final DotaSummary summary;
+  final DotaComputedStats stats;
 
   @override
   Widget build(BuildContext context) {
     final recommendations = [
-      if (summary.averageDeaths > 6)
-        'Reduce mid-game deaths by reviewing smoke timings.',
-      if (summary.winrate < 55)
-        'Focus on first 10 minutes and lane resource trades.',
-      if (summary.kda > 4)
-        'Keep high-impact heroes in your main pool this week.',
-      'Build a 3-hero comfort pool for ranked consistency.',
+      if (stats.averageDeaths > 6)
+        'Слишком много смертей: разбери 2-3 смерти после 10-й минуты и отметь, где не хватило обзора.',
+      if (stats.winrate < 50)
+        'Винрейт просел: сузь пул до 2-3 героев и тренируй первые 10 минут.',
+      if (stats.averageGpm < 450)
+        'Экономика ниже комфортной: добавь фокус на ластхиты и безопасный фарм после линии.',
+      if (stats.averageTowerDamage < 1000)
+        'Мало давления по объектам: после выигранной драки сразу ищи вышку или Рошана.',
+      if (stats.kda >= 4)
+        'KDA хороший: закрепляй героев с высоким импактом и играй вокруг своих сильных таймингов.',
+      'Сравни проигрыши и победы: ищи повторяющийся момент, где теряется темп.',
     ];
 
     return AppCard(
@@ -416,11 +539,11 @@ class _Recommendations extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           const Text(
-            'Recommendations',
+            'Рекомендации',
             style: TextStyle(fontSize: 20, fontWeight: FontWeight.w900),
           ),
           const SizedBox(height: 16),
-          for (final item in recommendations)
+          for (final item in recommendations.take(5))
             Padding(
               padding: const EdgeInsets.only(bottom: 12),
               child: Row(
@@ -451,13 +574,13 @@ class _MatchesTable extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final dateFormat = DateFormat('MMM d');
+    final dateFormat = DateFormat('dd.MM');
     return AppCard(
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           const Text(
-            'Recent matches',
+            'Последние матчи',
             style: TextStyle(fontSize: 20, fontWeight: FontWeight.w900),
           ),
           const SizedBox(height: 12),
@@ -469,12 +592,15 @@ class _MatchesTable extends StatelessWidget {
                 fontWeight: FontWeight.w800,
               ),
               columns: const [
-                DataColumn(label: Text('Match')),
-                DataColumn(label: Text('Result')),
-                DataColumn(label: Text('Hero')),
+                DataColumn(label: Text('Матч')),
+                DataColumn(label: Text('Результат')),
+                DataColumn(label: Text('Герой')),
                 DataColumn(label: Text('K/D/A')),
-                DataColumn(label: Text('Duration')),
-                DataColumn(label: Text('Date')),
+                DataColumn(label: Text('GPM/XPM')),
+                DataColumn(label: Text('LH')),
+                DataColumn(label: Text('Урон')),
+                DataColumn(label: Text('Длительность')),
+                DataColumn(label: Text('Дата')),
               ],
               rows: [
                 for (final match in matches)
@@ -483,7 +609,7 @@ class _MatchesTable extends StatelessWidget {
                       DataCell(Text(match.matchId.toString())),
                       DataCell(
                         Text(
-                          match.won ? 'Win' : 'Loss',
+                          match.won ? 'Победа' : 'Поражение',
                           style: TextStyle(
                             color: match.won
                                 ? GameMentorColors.green
@@ -492,12 +618,27 @@ class _MatchesTable extends StatelessWidget {
                           ),
                         ),
                       ),
-                      DataCell(Text('Hero ${match.heroId}')),
+                      DataCell(
+                        Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            _HeroAvatar(heroId: match.heroId, small: true),
+                            const SizedBox(width: 8),
+                            Text(
+                              heroInfoById(match.heroId)?.nameRu ??
+                                  'Герой ${match.heroId}',
+                            ),
+                          ],
+                        ),
+                      ),
                       DataCell(
                         Text('${match.kills}/${match.deaths}/${match.assists}'),
                       ),
+                      DataCell(Text('${match.goldPerMin}/${match.xpPerMin}')),
+                      DataCell(Text(match.lastHits.toString())),
+                      DataCell(Text(match.heroDamage.toString())),
                       DataCell(
-                        Text('${(match.durationSeconds / 60).round()}m'),
+                        Text('${(match.durationSeconds / 60).round()} мин'),
                       ),
                       DataCell(Text(dateFormat.format(match.startTime))),
                     ],
@@ -509,4 +650,64 @@ class _MatchesTable extends StatelessWidget {
       ),
     );
   }
+}
+
+class _HeroAvatar extends StatelessWidget {
+  const _HeroAvatar({required this.heroId, this.small = false});
+
+  final int heroId;
+  final bool small;
+
+  @override
+  Widget build(BuildContext context) {
+    final hero = heroInfoById(heroId);
+    final size = small ? 34.0 : 48.0;
+    return ClipRRect(
+      borderRadius: BorderRadius.circular(small ? 10 : 14),
+      child: Container(
+        width: size,
+        height: size,
+        color: GameMentorColors.purple.withValues(alpha: 0.18),
+        child: hero == null
+            ? Center(child: Text(heroId.toString()))
+            : Image.network(
+                hero.imageUrl,
+                fit: BoxFit.cover,
+                errorBuilder: (context, error, stackTrace) =>
+                    Center(child: Text(heroId.toString())),
+              ),
+      ),
+    );
+  }
+}
+
+class _StatValue {
+  const _StatValue(this.label, this.value, this.icon, this.color);
+
+  final String label;
+  final String value;
+  final IconData icon;
+  final Color color;
+}
+
+String rankLabel(int? rankTier) {
+  if (rankTier == null || rankTier <= 0) {
+    return 'Ранг неизвестен';
+  }
+  if (rankTier >= 80) {
+    return 'Immortal ($rankTier)';
+  }
+  final medal = rankTier ~/ 10;
+  final star = rankTier % 10;
+  final medalName = switch (medal) {
+    1 => 'Herald',
+    2 => 'Guardian',
+    3 => 'Crusader',
+    4 => 'Archon',
+    5 => 'Legend',
+    6 => 'Ancient',
+    7 => 'Divine',
+    _ => 'Неизвестно',
+  };
+  return '$medalName ${star == 0 ? '' : star}'.trim();
 }
