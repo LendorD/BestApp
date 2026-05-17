@@ -305,6 +305,12 @@ const _navItems = [
   ),
   _NavItem('Профиль', 'Профиль', '/profile', Icons.person_rounded),
   _NavItem(
+    'Регистрация',
+    'Аккаунт',
+    '/register',
+    Icons.person_add_alt_1_rounded,
+  ),
+  _NavItem(
     'Админ-панель',
     'Админ',
     '/admin',

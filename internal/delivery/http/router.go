@@ -10,7 +10,7 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-func NewRouter(log *slog.Logger, cs2Handler *handler.CS2Handler, dotaHandler *handler.DotaHandler) *gin.Engine {
+func NewRouter(log *slog.Logger, cs2Handler *handler.CS2Handler, dotaHandler *handler.DotaHandler, userHandler *handler.UserHandler) *gin.Engine {
 	gin.SetMode(gin.ReleaseMode)
 
 	router := gin.New()
@@ -31,6 +31,14 @@ func NewRouter(log *slog.Logger, cs2Handler *handler.CS2Handler, dotaHandler *ha
 	})
 
 	api := router.Group("/api/v1")
+
+	auth := api.Group("/auth")
+	auth.POST("/register", userHandler.Register)
+	auth.POST("/login", userHandler.Login)
+
+	users := api.Group("/users")
+	users.GET("/:id/profile", userHandler.GetProfile)
+	users.PUT("/:id/profile", userHandler.UpdateProfile)
 
 	cs2 := api.Group("/cs2")
 	cs2.GET("/maps", cs2Handler.ListMaps)

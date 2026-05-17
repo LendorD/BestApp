@@ -59,6 +59,8 @@ func classify(err error) (int, string, string) {
 	switch {
 	case errors.Is(err, domain.ErrValidation):
 		return http.StatusBadRequest, "validation_error", message
+	case errors.Is(err, domain.ErrUnauthorized):
+		return http.StatusUnauthorized, "unauthorized", message
 	case errors.Is(err, domain.ErrNotFound):
 		return http.StatusNotFound, "not_found", message
 	case errors.Is(err, domain.ErrExternal):
@@ -75,6 +77,7 @@ func cleanMessage(err error) string {
 	message := err.Error()
 	prefixes := []string{
 		domain.ErrValidation.Error() + ": ",
+		domain.ErrUnauthorized.Error() + ": ",
 		domain.ErrNotFound.Error() + ": ",
 		domain.ErrExternal.Error() + ": ",
 	}

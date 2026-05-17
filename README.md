@@ -20,12 +20,14 @@ GameMentor - учебно-продуктовый проект для игрок�
 - Graceful shutdown.
 - Healthcheck endpoint.
 - Swagger/OpenAPI страница.
+- Регистрация пользователя и сохранение профиля.
 - CS2 CRUD для базы гранат.
 - Dota 2 интеграция с OpenDota API.
 - Расчет Dota статистики: winrate, KDA, средние kills/deaths/assists, экономика, урон, лечение, last hits, top heroes.
 - Сохранение Dota snapshots в PostgreSQL.
 - Flutter Web интерфейс с темной esports-темой.
 - Mock/API режим фронта через `--dart-define`.
+- Локальные изображения для главной, CS2 карт, демо-гранат и Dota fallback профиля.
 - Локальная CLI-утилита `cs2-grenade-recorder` для чтения `console.log` из CS2.
 
 ## Быстрый Старт
@@ -167,6 +169,44 @@ http://localhost:8080/api/v1
 }
 ```
 
+### Auth / Profile Endpoints
+
+Auth в MVP сделан как простая регистрация без JWT: backend создает пользователя, а frontend сохраняет `user_id` в browser storage и по нему загружает профиль. Это уже позволяет сохранять профиль, Dota account ID и настройки. Полноценные access/refresh tokens можно добавить следующим шагом.
+
+```text
+POST /auth/register
+POST /auth/login
+GET  /users/:id/profile
+PUT  /users/:id/profile
+```
+
+Пример регистрации:
+
+```powershell
+curl -X POST http://localhost:8080/api/v1/auth/register `
+  -H "Content-Type: application/json" `
+  -d '{
+    "email": "player@gamementor.local",
+    "username": "lendor",
+    "password": "123456",
+    "display_name": "Lendor"
+  }'
+```
+
+Пример сохранения профиля:
+
+```powershell
+curl -X PUT http://localhost:8080/api/v1/users/1/profile `
+  -H "Content-Type: application/json" `
+  -d '{
+    "display_name": "Lendor",
+    "avatar_url": "/assets/gamementor/dota/profile-fallback.jpg",
+    "bio": "Тренирую CS2 utility и разбираю Dota решения.",
+    "favorite_game": "CS2 + Dota 2",
+    "dota_account_id": 369102305
+  }'
+```
+
 ### CS2 Endpoints
 
 ```text
@@ -303,6 +343,7 @@ Flutter Web приложение находится в [frontend](frontend).
 - Dota 2 Stats.
 - Training Plans.
 - Profile.
+- Register / Login.
 - Admin Panel.
 
 Режимы API:
@@ -320,9 +361,9 @@ frontend/lib/core/config/app_config.dart
 
 ## Картинки Для Фронта
 
-Сейчас часть картинок грузится из внешних URL. Если интернет нестабильный или CDN не отвечает, карточки могут показывать fallback. Для нормального локального проекта лучше сложить свои изображения в `frontend/web/assets/gamementor`.
+Картинки уже скачаны в `frontend/web/assets/gamementor`, а frontend использует локальные пути. Если захочешь заменить placeholder на свои реальные скриншоты, просто перезапиши файлы с теми же именами.
 
-Эти файлы стоит скачать или сделать самому:
+Сейчас в проекте лежат:
 
 ```text
 frontend/web/assets/gamementor/home/hero.jpg
@@ -532,7 +573,7 @@ docker compose up --build
 
 Ближайшие улучшения:
 
-- авторизация пользователей;
+- JWT access/refresh tokens вместо локального MVP `user_id`;
 - избранные гранаты;
 - полноценные training plans;
 - загрузка CS2 изображений через backend;

@@ -49,6 +49,7 @@ flutter build web
 - `/dota` - статистика Dota 2.
 - `/training` - планы тренировок.
 - `/profile` - профиль.
+- `/register` - регистрация и вход.
 - `/admin` - форма добавления CS2 гранаты.
 
 ## API Mode
@@ -74,6 +75,8 @@ API_BASE_URL=http://localhost:8080/api/v1
 ```text
 web/assets/gamementor
 ```
+
+Базовый набор изображений уже скачан в эту папку. Для продакшн-вида лучше заменить demo placeholders на свои скриншоты CS2 и выбранные licensed-изображения.
 
 Например, для гранаты:
 

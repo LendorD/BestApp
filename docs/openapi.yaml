@@ -13,6 +13,79 @@ paths:
       responses:
         "200":
           description: Service is healthy
+  /api/v1/auth/register:
+    post:
+      tags: [Auth]
+      summary: Register a GameMentor user
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/RegisterUserInput"
+      responses:
+        "201":
+          description: Registered user
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AuthResponse"
+        "400":
+          $ref: "#/components/responses/Error"
+  /api/v1/auth/login:
+    post:
+      tags: [Auth]
+      summary: Login with email or username
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/LoginUserInput"
+      responses:
+        "200":
+          description: Current user
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AuthResponse"
+        "401":
+          $ref: "#/components/responses/Error"
+  /api/v1/users/{id}/profile:
+    get:
+      tags: [Users]
+      summary: Get saved GameMentor profile
+      parameters:
+        - $ref: "#/components/parameters/ID"
+      responses:
+        "200":
+          description: User profile
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/UserProfileResponse"
+        "404":
+          $ref: "#/components/responses/Error"
+    put:
+      tags: [Users]
+      summary: Update saved GameMentor profile
+      parameters:
+        - $ref: "#/components/parameters/ID"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UpdateUserProfileInput"
+      responses:
+        "200":
+          description: Updated user profile
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/UserProfileResponse"
+        "400":
+          $ref: "#/components/responses/Error"
   /api/v1/cs2/maps:
     get:
       tags: [CS2]
@@ -224,6 +297,84 @@ components:
         updated_at:
           type: string
           format: date-time
+    UserProfile:
+      type: object
+      properties:
+        id:
+          type: integer
+          format: int64
+        email:
+          type: string
+          example: player@gamementor.local
+        username:
+          type: string
+          example: lendor
+        display_name:
+          type: string
+          example: Lendor
+        avatar_url:
+          type: string
+          example: /assets/gamementor/dota/profile-fallback.jpg
+        bio:
+          type: string
+        favorite_game:
+          type: string
+          example: CS2 + Dota 2
+        dota_account_id:
+          type: integer
+          format: int64
+          nullable: true
+        created_at:
+          type: string
+          format: date-time
+        updated_at:
+          type: string
+          format: date-time
+        last_login_at:
+          type: string
+          format: date-time
+          nullable: true
+    RegisterUserInput:
+      type: object
+      required: [email, username, password]
+      properties:
+        email:
+          type: string
+          example: player@gamementor.local
+        username:
+          type: string
+          example: lendor
+        password:
+          type: string
+          minLength: 6
+        display_name:
+          type: string
+          example: Lendor
+    LoginUserInput:
+      type: object
+      required: [identity, password]
+      properties:
+        identity:
+          type: string
+          example: player@gamementor.local
+        password:
+          type: string
+    UpdateUserProfileInput:
+      type: object
+      required: [display_name]
+      properties:
+        display_name:
+          type: string
+        avatar_url:
+          type: string
+        bio:
+          type: string
+        favorite_game:
+          type: string
+        dota_account_id:
+          type: integer
+          format: int64
+          nullable: true
     CS2Grenade:
       type: object
       properties:
@@ -399,6 +550,23 @@ components:
               type: array
               items:
                 $ref: "#/components/schemas/CS2Map"
+    AuthResponse:
+      allOf:
+        - $ref: "#/components/schemas/Envelope"
+        - type: object
+          properties:
+            data:
+              type: object
+              properties:
+                user:
+                  $ref: "#/components/schemas/UserProfile"
+    UserProfileResponse:
+      allOf:
+        - $ref: "#/components/schemas/Envelope"
+        - type: object
+          properties:
+            data:
+              $ref: "#/components/schemas/UserProfile"
     CS2GrenadeResponse:
       allOf:
         - $ref: "#/components/schemas/Envelope"

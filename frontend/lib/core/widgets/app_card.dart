@@ -11,6 +11,7 @@ class AppCard extends StatefulWidget {
     this.onTap,
     this.padding = const EdgeInsets.all(22),
     this.gradient,
+    this.color,
     this.borderColor,
   });
 
@@ -18,6 +19,7 @@ class AppCard extends StatefulWidget {
   final VoidCallback? onTap;
   final EdgeInsetsGeometry padding;
   final Gradient? gradient;
+  final Color? color;
   final Color? borderColor;
 
   @override
@@ -45,7 +47,9 @@ class _AppCardState extends State<AppCard> {
             duration: const Duration(milliseconds: 180),
             padding: widget.padding,
             decoration: BoxDecoration(
-              color: GameMentorColors.surface.withValues(alpha: 0.76),
+              color:
+                  widget.color ??
+                  GameMentorColors.surface.withValues(alpha: 0.76),
               gradient: widget.gradient,
               borderRadius: BorderRadius.circular(18),
               border: Border.all(color: borderColor),

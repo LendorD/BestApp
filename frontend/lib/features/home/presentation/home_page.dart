@@ -50,9 +50,7 @@ class _HeroSection extends StatelessWidget {
       decoration: BoxDecoration(
         borderRadius: BorderRadius.circular(28),
         image: const DecorationImage(
-          image: NetworkImage(
-            'https://cdn.cloudflare.steamstatic.com/apps/csgo/images/csgo_react/social/cs2.jpg',
-          ),
+          image: NetworkImage('/assets/gamementor/home/hero.jpg'),
           fit: BoxFit.cover,
           opacity: 0.28,
         ),
@@ -162,8 +160,7 @@ class _FeatureCards extends StatelessWidget {
               label: 'Карты, позиции, сложность',
               icon: Icons.radar_rounded,
               colors: const [GameMentorColors.purple, GameMentorColors.blue],
-              imageUrl:
-                  'https://cdn.cloudflare.steamstatic.com/apps/csgo/images/csgo_react//cs2/header_ctt.png',
+              imageUrl: '/assets/gamementor/home/cs2-card.jpg',
               onTap: () => context.go('/cs2'),
             ),
             _BigFeatureCard(
@@ -171,8 +168,7 @@ class _FeatureCards extends StatelessWidget {
               label: 'Винрейт, KDA, герои',
               icon: Icons.auto_graph_rounded,
               colors: const [GameMentorColors.green, GameMentorColors.blue],
-              imageUrl:
-                  'https://cdn.cloudflare.steamstatic.com/apps/dota2/images/dota_react/heroes/social/invoker.jpg',
+              imageUrl: '/assets/gamementor/home/dota-card.jpg',
               onTap: () {
                 final value = accountController.text.trim();
                 context.go(value.isEmpty ? '/dota' : '/dota?account_id=$value');
@@ -318,14 +314,14 @@ class _PopularMaps extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final maps = [
-      'Mirage',
-      'Inferno',
-      'Dust2',
-      'Nuke',
-      'Ancient',
-      'Anubis',
-      'Vertigo',
+    final maps = const [
+      ('Mirage', '/assets/gamementor/cs2/maps/mirage.jpg'),
+      ('Inferno', '/assets/gamementor/cs2/maps/inferno.jpg'),
+      ('Dust2', '/assets/gamementor/cs2/maps/dust2.jpg'),
+      ('Nuke', '/assets/gamementor/cs2/maps/nuke.jpg'),
+      ('Ancient', '/assets/gamementor/cs2/maps/ancient.jpg'),
+      ('Anubis', '/assets/gamementor/cs2/maps/anubis.jpg'),
+      ('Vertigo', '/assets/gamementor/cs2/maps/vertigo.jpg'),
     ];
 
     return Column(
@@ -333,19 +329,32 @@ class _PopularMaps extends StatelessWidget {
       children: [
         const _SectionTitle('Популярные карты CS2'),
         const SizedBox(height: 14),
-        AppCard(
-          child: Wrap(
-            spacing: 10,
-            runSpacing: 10,
-            children: [
-              for (final map in maps)
-                ActionChip(
-                  label: Text(map),
-                  avatar: const Icon(Icons.map_rounded, size: 18),
-                  onPressed: () => context.go('/cs2'),
-                ),
-            ],
-          ),
+        LayoutBuilder(
+          builder: (context, constraints) {
+            final columns = constraints.maxWidth > 1050
+                ? 4
+                : constraints.maxWidth > 760
+                ? 3
+                : constraints.maxWidth > 480
+                ? 2
+                : 1;
+            return GridView.count(
+              crossAxisCount: columns,
+              shrinkWrap: true,
+              physics: const NeverScrollableScrollPhysics(),
+              crossAxisSpacing: 12,
+              mainAxisSpacing: 12,
+              childAspectRatio: columns == 1 ? 3.4 : 2.2,
+              children: [
+                for (final map in maps)
+                  _MapCard(
+                    title: map.$1,
+                    imageUrl: map.$2,
+                    onTap: () => context.go('/cs2'),
+                  ),
+              ],
+            );
+          },
         ),
         const SizedBox(height: 18),
         AppCard(
@@ -393,6 +402,69 @@ class _PopularMaps extends StatelessWidget {
           ),
         ),
       ],
+    );
+  }
+}
+
+class _MapCard extends StatelessWidget {
+  const _MapCard({
+    required this.title,
+    required this.imageUrl,
+    required this.onTap,
+  });
+
+  final String title;
+  final String imageUrl;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    return AppCard(
+      padding: EdgeInsets.zero,
+      onTap: onTap,
+      child: Stack(
+        fit: StackFit.expand,
+        children: [
+          Image.network(imageUrl, fit: BoxFit.cover),
+          DecoratedBox(
+            decoration: BoxDecoration(
+              gradient: LinearGradient(
+                begin: Alignment.topCenter,
+                end: Alignment.bottomCenter,
+                colors: [
+                  Colors.transparent,
+                  GameMentorColors.background.withValues(alpha: 0.82),
+                ],
+              ),
+            ),
+          ),
+          Positioned(
+            left: 14,
+            right: 14,
+            bottom: 12,
+            child: Row(
+              children: [
+                const Icon(
+                  Icons.map_rounded,
+                  color: GameMentorColors.green,
+                  size: 18,
+                ),
+                const SizedBox(width: 8),
+                Expanded(
+                  child: Text(
+                    title,
+                    overflow: TextOverflow.ellipsis,
+                    style: const TextStyle(
+                      fontWeight: FontWeight.w900,
+                      fontSize: 16,
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
     );
   }
 }

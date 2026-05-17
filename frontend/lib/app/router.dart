@@ -3,6 +3,7 @@ import 'package:go_router/go_router.dart';
 
 import '../core/widgets/app_shell.dart';
 import '../features/admin/presentation/admin_page.dart';
+import '../features/auth/presentation/register_page.dart';
 import '../features/cs2_grenades/presentation/cs2_grenade_detail_page.dart';
 import '../features/cs2_grenades/presentation/cs2_grenades_page.dart';
 import '../features/dota_stats/presentation/dota_stats_page.dart';
@@ -57,6 +58,11 @@ final appRouter = GoRouter(
           path: '/profile',
           name: 'profile',
           builder: (context, state) => const ProfilePage(),
+        ),
+        GoRoute(
+          path: '/register',
+          name: 'register',
+          builder: (context, state) => const RegisterPage(),
         ),
         GoRoute(
           path: '/admin',

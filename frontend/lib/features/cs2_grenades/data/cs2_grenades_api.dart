@@ -130,8 +130,7 @@ class MockCs2GrenadesApi implements Cs2GrenadesApi {
       fromPosition: 'T spawn',
       toPosition: 'Window',
       difficulty: 'easy',
-      imageUrl:
-          'https://images.unsplash.com/photo-1542751371-adc38448a05e?auto=format&fit=crop&w=1200&q=80',
+      imageUrl: '/assets/gamementor/cs2/grenades/mirage-window-smoke.jpg',
       videoUrl: 'https://example.com/mirage-window-smoke',
       tags: ['mid', 'default', 'execute'],
       createdAt: _now,
@@ -147,8 +146,7 @@ class MockCs2GrenadesApi implements Cs2GrenadesApi {
       fromPosition: 'T ramp',
       toPosition: 'Top banana',
       difficulty: 'medium',
-      imageUrl:
-          'https://images.unsplash.com/photo-1511512578047-dfb367046420?auto=format&fit=crop&w=1200&q=80',
+      imageUrl: '/assets/gamementor/cs2/grenades/inferno-banana-flash.jpg',
       videoUrl: 'https://example.com/inferno-banana-flash',
       tags: ['banana', 'entry', 'flash'],
       createdAt: _now,
@@ -164,8 +162,7 @@ class MockCs2GrenadesApi implements Cs2GrenadesApi {
       fromPosition: 'Lobby',
       toPosition: 'Hut',
       difficulty: 'easy',
-      imageUrl:
-          'https://images.unsplash.com/photo-1534423861386-85a16f5d13fd?auto=format&fit=crop&w=1200&q=80',
+      imageUrl: '/assets/gamementor/cs2/grenades/nuke-hut-molotov.jpg',
       videoUrl: 'https://example.com/nuke-hut-molly',
       tags: ['a-site', 'lobby', 'clear'],
       createdAt: _now,
@@ -182,8 +179,7 @@ class MockCs2GrenadesApi implements Cs2GrenadesApi {
       fromPosition: 'B connector',
       toPosition: 'B main',
       difficulty: 'hard',
-      imageUrl:
-          'https://images.unsplash.com/photo-1493711662062-fa541adb3fc8?auto=format&fit=crop&w=1200&q=80',
+      imageUrl: '/assets/gamementor/cs2/grenades/anubis-b-main-he.jpg',
       videoUrl: 'https://example.com/anubis-b-main-he',
       tags: ['anti-rush', 'b-site', 'damage'],
       createdAt: _now,

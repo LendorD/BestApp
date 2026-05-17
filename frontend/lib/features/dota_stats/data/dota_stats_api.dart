@@ -72,8 +72,7 @@ class MockDotaStatsApi implements DotaStatsApi {
     return DotaPlayer(
       accountId: accountId,
       personaName: 'Игрок GameMentor',
-      avatarFull:
-          'https://images.unsplash.com/photo-1560253023-3ec5d502959f?auto=format&fit=crop&w=400&q=80',
+      avatarFull: '/assets/gamementor/dota/profile-fallback.jpg',
       profileUrl: 'https://www.opendota.com/players/$accountId',
       rankTier: 64,
       createdAt: _now,

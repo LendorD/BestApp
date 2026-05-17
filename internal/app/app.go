@@ -40,16 +40,19 @@ func Run() error {
 
 	cs2Repo := pgrepo.NewCS2Repository(pool)
 	dotaRepo := pgrepo.NewDotaRepository(pool)
+	userRepo := pgrepo.NewUserRepository(pool)
 
 	openDotaClient := opendota.NewClient(cfg.OpenDotaBaseURL, cfg.OpenDotaTimeout)
 
 	cs2UC := usecase.NewCS2Usecase(cs2Repo)
 	dotaUC := usecase.NewDotaUsecase(openDotaClient, dotaRepo)
+	userUC := usecase.NewUserUsecase(userRepo)
 
 	cs2Handler := handler.NewCS2Handler(cs2UC)
 	dotaHandler := handler.NewDotaHandler(dotaUC)
+	userHandler := handler.NewUserHandler(userUC)
 
-	router := httpdelivery.NewRouter(log, cs2Handler, dotaHandler)
+	router := httpdelivery.NewRouter(log, cs2Handler, dotaHandler, userHandler)
 	server := &http.Server{
 		Addr:              cfg.HTTPAddr,
 		Handler:           router,

@@ -1,0 +1,9 @@
+ALTER TABLE tbl_users
+    ADD COLUMN IF NOT EXISTS display_name TEXT NOT NULL DEFAULT '',
+    ADD COLUMN IF NOT EXISTS avatar_url TEXT NOT NULL DEFAULT '',
+    ADD COLUMN IF NOT EXISTS bio TEXT NOT NULL DEFAULT '',
+    ADD COLUMN IF NOT EXISTS favorite_game TEXT NOT NULL DEFAULT '',
+    ADD COLUMN IF NOT EXISTS dota_account_id BIGINT,
+    ADD COLUMN IF NOT EXISTS last_login_at TIMESTAMPTZ;
+
+CREATE INDEX IF NOT EXISTS idx_users_dota_account_id ON tbl_users(dota_account_id);
