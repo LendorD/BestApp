@@ -2,10 +2,12 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../app/theme.dart';
+import '../../../core/utils/text_file_picker.dart';
 import '../../../core/widgets/app_card.dart';
 import '../../cs2_grenades/data/cs2_grenades_api.dart';
 import '../../cs2_grenades/data/cs2_grenades_providers.dart';
 import '../../cs2_grenades/domain/cs2_models.dart';
+import '../../cs2_grenades/domain/recorder_import.dart';
 
 class AdminPage extends ConsumerStatefulWidget {
   const AdminPage({super.key});
@@ -23,12 +25,14 @@ class _AdminPageState extends ConsumerState<AdminPage> {
   final _imageUrl = TextEditingController();
   final _videoUrl = TextEditingController();
   final _tags = TextEditingController(text: 'default, execute');
+  final _recorderJson = TextEditingController();
 
   String _map = 'mirage';
   String _side = 'T';
   String _type = 'smoke';
   String _difficulty = 'easy';
   bool _submitting = false;
+  RecorderGrenadeImport? _lastImport;
 
   @override
   void dispose() {
@@ -39,7 +43,56 @@ class _AdminPageState extends ConsumerState<AdminPage> {
     _imageUrl.dispose();
     _videoUrl.dispose();
     _tags.dispose();
+    _recorderJson.dispose();
     super.dispose();
+  }
+
+  Future<void> _pickRecorderJson() async {
+    final content = await pickTextFile(accept: '.json,application/json');
+    if (content == null || !mounted) {
+      return;
+    }
+
+    _recorderJson.text = content;
+    _applyRecorderImport(content);
+  }
+
+  void _applyRecorderImport([String? rawJson]) {
+    final source = rawJson ?? _recorderJson.text;
+
+    try {
+      final imported = RecorderGrenadeImport.fromRawText(source);
+      setState(() {
+        _lastImport = imported;
+        _map = imported.safeMapCode;
+        _type = imported.safeGrenadeType;
+        _title.text = imported.suggestedTitle;
+        _description.text = imported.suggestedDescription;
+        _from.text = imported.suggestedFromPosition;
+        _to.text = imported.suggestedToPosition;
+        if (_imageUrl.text.trim().isEmpty) {
+          _imageUrl.text = imported.suggestedImageUrl;
+        }
+        if (_tags.text.trim().isEmpty ||
+            _tags.text.trim() == 'default, execute') {
+          _tags.text = imported.suggestedTagsCsv;
+        }
+      });
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Recorder JSON импортирован в форму')),
+      );
+    } on FormatException catch (error) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Не удалось разобрать grenade.json: ${error.message}'),
+        ),
+      );
+    } catch (_) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Не удалось импортировать grenade.json')),
+      );
+    }
   }
 
   Future<void> _submit() async {
@@ -75,6 +128,11 @@ class _AdminPageState extends ConsumerState<AdminPage> {
         _description.clear();
         _from.clear();
         _to.clear();
+        _imageUrl.clear();
+        _videoUrl.clear();
+        _tags.text = 'default, execute';
+        _recorderJson.clear();
+        setState(() => _lastImport = null);
       }
     } catch (error) {
       if (mounted) {
@@ -102,8 +160,15 @@ class _AdminPageState extends ConsumerState<AdminPage> {
         ),
         const SizedBox(height: 8),
         const Text(
-          'Добавление CS2 раскидок через тот же API-контракт, который использует приложение.',
+          'Здесь можно либо заполнить гранату вручную, либо импортировать grenade.json из CS2 recorder.',
           style: TextStyle(color: GameMentorColors.muted),
+        ),
+        const SizedBox(height: 22),
+        _RecorderImportCard(
+          controller: _recorderJson,
+          lastImport: _lastImport,
+          onImportPressed: _applyRecorderImport,
+          onPickFilePressed: _pickRecorderJson,
         ),
         const SizedBox(height: 22),
         AppCard(
@@ -175,6 +240,7 @@ class _AdminPageState extends ConsumerState<AdminPage> {
                       controller: _description,
                       label: 'Описание',
                       maxLines: 4,
+                      required: false,
                     ),
                     const SizedBox(height: 14),
                     _ResponsiveRow(
@@ -183,9 +249,20 @@ class _AdminPageState extends ConsumerState<AdminPage> {
                         _TextInput(
                           controller: _imageUrl,
                           label: 'URL картинки',
+                          required: false,
+                          hintText: '/assets/gamementor/cs2/maps/mirage.jpg',
                         ),
-                        _TextInput(controller: _videoUrl, label: 'URL видео'),
-                        _TextInput(controller: _tags, label: 'Теги'),
+                        _TextInput(
+                          controller: _videoUrl,
+                          label: 'URL видео',
+                          required: false,
+                        ),
+                        _TextInput(
+                          controller: _tags,
+                          label: 'Теги',
+                          required: false,
+                          hintText: 'recorder, mirage, smoke',
+                        ),
                       ],
                     ),
                     const SizedBox(height: 20),
@@ -212,6 +289,130 @@ class _AdminPageState extends ConsumerState<AdminPage> {
           ),
         ),
       ],
+    );
+  }
+}
+
+class _RecorderImportCard extends StatelessWidget {
+  const _RecorderImportCard({
+    required this.controller,
+    required this.lastImport,
+    required this.onImportPressed,
+    required this.onPickFilePressed,
+  });
+
+  final TextEditingController controller;
+  final RecorderGrenadeImport? lastImport;
+  final VoidCallback onImportPressed;
+  final VoidCallback onPickFilePressed;
+
+  @override
+  Widget build(BuildContext context) {
+    return AppCard(
+      gradient: LinearGradient(
+        colors: [
+          GameMentorColors.blue.withValues(alpha: 0.18),
+          GameMentorColors.green.withValues(alpha: 0.08),
+        ],
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            'Импорт из recorder',
+            style: Theme.of(
+              context,
+            ).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.w900),
+          ),
+          const SizedBox(height: 8),
+          const Text(
+            '1. Запиши grenade.json через cs2-grenade-recorder. 2. Вставь JSON ниже или открой файл. 3. Проверь side и difficulty, затем сохрани гранату.',
+            style: TextStyle(color: GameMentorColors.muted, height: 1.45),
+          ),
+          const SizedBox(height: 16),
+          TextField(
+            controller: controller,
+            minLines: 7,
+            maxLines: 10,
+            decoration: const InputDecoration(
+              labelText: 'Содержимое grenade.json',
+              alignLabelWithHint: true,
+              hintText:
+                  '{\n  "map": "de_mirage",\n  "grenade_type": "smoke",\n  "throw_position": {}\n}',
+            ),
+          ),
+          const SizedBox(height: 14),
+          Wrap(
+            spacing: 12,
+            runSpacing: 12,
+            crossAxisAlignment: WrapCrossAlignment.center,
+            children: [
+              OutlinedButton.icon(
+                onPressed: onPickFilePressed,
+                icon: const Icon(Icons.upload_file_rounded),
+                label: const Text('Открыть grenade.json'),
+              ),
+              ElevatedButton.icon(
+                onPressed: onImportPressed,
+                icon: const Icon(Icons.download_rounded),
+                label: const Text('Импортировать в форму'),
+              ),
+              if (lastImport != null)
+                Container(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 12,
+                    vertical: 10,
+                  ),
+                  decoration: BoxDecoration(
+                    color: GameMentorColors.surfaceAlt,
+                    borderRadius: BorderRadius.circular(16),
+                    border: Border.all(color: GameMentorColors.border),
+                  ),
+                  child: Text(
+                    '${lastImport!.safeMapCode.toUpperCase()} | ${lastImport!.safeGrenadeType.toUpperCase()}',
+                    style: const TextStyle(fontWeight: FontWeight.w800),
+                  ),
+                ),
+            ],
+          ),
+          if (lastImport != null) ...[
+            const SizedBox(height: 16),
+            Container(
+              width: double.infinity,
+              padding: const EdgeInsets.all(14),
+              decoration: BoxDecoration(
+                color: GameMentorColors.surfaceAlt.withValues(alpha: 0.8),
+                borderRadius: BorderRadius.circular(18),
+                border: Border.all(color: GameMentorColors.border),
+              ),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  const Text(
+                    'Что подтянулось из recorder',
+                    style: TextStyle(fontWeight: FontWeight.w900),
+                  ),
+                  const SizedBox(height: 10),
+                  Text(
+                    'Throw: ${lastImport!.throwPosition.toShortString()}',
+                    style: const TextStyle(color: GameMentorColors.muted),
+                  ),
+                  const SizedBox(height: 6),
+                  Text(
+                    'View: pitch ${lastImport!.viewAngle.pitchLabel}, yaw ${lastImport!.viewAngle.yawLabel}',
+                    style: const TextStyle(color: GameMentorColors.muted),
+                  ),
+                  const SizedBox(height: 6),
+                  Text(
+                    'Landing: ${lastImport!.landingPosition.toShortString()}',
+                    style: const TextStyle(color: GameMentorColors.muted),
+                  ),
+                ],
+              ),
+            ),
+          ],
+        ],
+      ),
     );
   }
 }
@@ -248,19 +449,26 @@ class _TextInput extends StatelessWidget {
     required this.controller,
     required this.label,
     this.maxLines = 1,
+    this.required = true,
+    this.hintText,
   });
 
   final TextEditingController controller;
   final String label;
   final int maxLines;
+  final bool required;
+  final String? hintText;
 
   @override
   Widget build(BuildContext context) {
     return TextFormField(
       controller: controller,
       maxLines: maxLines,
-      decoration: InputDecoration(labelText: label),
+      decoration: InputDecoration(labelText: label, hintText: hintText),
       validator: (value) {
+        if (!required) {
+          return null;
+        }
         if (value == null || value.trim().isEmpty) {
           return 'Поле обязательно';
         }
@@ -286,6 +494,7 @@ class _SelectField extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return DropdownButtonFormField<String>(
+      key: ValueKey<String>('${label}_$value'),
       initialValue: value,
       isExpanded: true,
       decoration: InputDecoration(labelText: label),
