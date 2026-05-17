@@ -1,63 +1,90 @@
 # GameMentor Frontend
 
-Flutter Web frontend for GameMentor: CS2 utility learning, Dota 2 stats and training plans.
+Flutter Web интерфейс для GameMentor: темная esports-панель с CS2 раскидками, Dota 2 аналитикой, тренировками, профилем и админкой.
 
-## Stack
+## Стек
 
-- Flutter Web
-- Riverpod
-- go_router
-- Dio
-- freezed + json_serializable
-- Feature-based structure under `lib/features`
+- Flutter Web.
+- Riverpod.
+- go_router.
+- Dio.
+- freezed/json_serializable.
+- Feature-based структура в `lib/features`.
 
-## Run
+## Запуск
 
-Mock mode is enabled by default:
+Mock-режим включен по умолчанию:
 
-```bash
+```powershell
 flutter pub get
 dart run build_runner build --delete-conflicting-outputs
 flutter run -d chrome --web-port 5173
 ```
 
-Use the Go backend API:
+Режим реального backend API:
 
-```bash
-cd frontend
-flutter run -d chrome --web-port 5173 \
-  --dart-define=USE_MOCK_API=false \
-  --dart-define=API_BASE_URL=http://localhost:8080/api/v1
+```powershell
+flutter run -d chrome --web-port 5173 --dart-define=USE_MOCK_API=false --dart-define=API_BASE_URL=http://localhost:8080/api/v1
 ```
 
-## Build
+Если порт занят, запусти на другом:
 
-```bash
+```powershell
+flutter run -d chrome --web-port 5174
+```
+
+## Проверки
+
+```powershell
+flutter analyze
+flutter test
 flutter build web
 ```
 
-## Checks
+## Страницы
 
-```bash
-flutter analyze
-flutter test
-```
-
-## Pages
-
-- `/` Главная
-- `/cs2` Гранаты CS2
-- `/cs2/:id` Детальная страница гранаты
-- `/dota` Статистика Dota 2
-- `/training` План тренировок
-- `/profile` Профиль
-- `/admin` Админ-панель
-
-The Dota page supports period switching, hero images from Steam CDN, rank explanation and extended OpenDota metrics.
+- `/` - главная.
+- `/cs2` - список гранат CS2.
+- `/cs2/:id` - детальная страница гранаты.
+- `/dota` - статистика Dota 2.
+- `/training` - планы тренировок.
+- `/profile` - профиль.
+- `/admin` - форма добавления CS2 гранаты.
 
 ## API Mode
 
-Configuration lives in `lib/core/config/app_config.dart`.
+Конфиг находится здесь:
 
-- `USE_MOCK_API=true` uses local mock data.
-- `USE_MOCK_API=false` uses Dio with `API_BASE_URL`.
+```text
+lib/core/config/app_config.dart
+```
+
+Параметры:
+
+```text
+USE_MOCK_API=true
+USE_MOCK_API=false
+API_BASE_URL=http://localhost:8080/api/v1
+```
+
+## Картинки
+
+Для надежного локального отображения клади картинки в:
+
+```text
+web/assets/gamementor
+```
+
+Например, для гранаты:
+
+```text
+web/assets/gamementor/cs2/grenades/mirage-window-smoke.jpg
+```
+
+И указывай в API/Admin Panel:
+
+```text
+/assets/gamementor/cs2/grenades/mirage-window-smoke.jpg
+```
+
+Справочник по нужным файлам: [web/assets/gamementor/README.md](web/assets/gamementor/README.md).

@@ -11,6 +11,9 @@ class DotaHeroInfo {
 
   String get imageUrl =>
       'https://cdn.cloudflare.steamstatic.com/apps/dota2/images/dota_react/heroes/$slug.png';
+
+  String get cardUrl =>
+      'https://cdn.cloudflare.steamstatic.com/apps/dota2/images/dota_react/heroes/social/$slug.jpg';
 }
 
 const dotaHeroes = <int, DotaHeroInfo>{

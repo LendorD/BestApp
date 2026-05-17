@@ -177,27 +177,36 @@ class _AnalysisContent extends StatelessWidget {
         const SizedBox(height: 18),
         _PeriodSelector(selected: period, onChanged: onPeriodChanged),
         const SizedBox(height: 18),
-        _StatsGrid(stats: stats),
-        const SizedBox(height: 18),
         LayoutBuilder(
           builder: (context, constraints) {
-            final compact = constraints.maxWidth < 980;
-            final heroes = _TopHeroes(heroes: stats.topHeroes);
-            final recommendations = _Recommendations(stats: stats);
+            final compact = constraints.maxWidth < 940;
             return compact
                 ? Column(
                     children: [
-                      heroes,
+                      _TopHeroes(heroes: stats.topHeroes),
                       const SizedBox(height: 18),
-                      recommendations,
+                      _StatsGrid(stats: stats),
+                      const SizedBox(height: 18),
+                      _Recommendations(stats: stats),
                     ],
                   )
                 : Row(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Expanded(child: heroes),
+                      SizedBox(
+                        width: 390,
+                        child: _TopHeroes(heroes: stats.topHeroes),
+                      ),
                       const SizedBox(width: 18),
-                      Expanded(child: recommendations),
+                      Expanded(
+                        child: Column(
+                          children: [
+                            _StatsGrid(stats: stats),
+                            const SizedBox(height: 18),
+                            _Recommendations(stats: stats),
+                          ],
+                        ),
+                      ),
                     ],
                   );
           },
@@ -402,40 +411,62 @@ class _StatsGrid extends StatelessWidget {
 
     return LayoutBuilder(
       builder: (context, constraints) {
-        final columns = constraints.maxWidth > 1180
-            ? 6
-            : constraints.maxWidth > 900
+        final columns = constraints.maxWidth > 760
             ? 4
-            : constraints.maxWidth > 620
+            : constraints.maxWidth > 520
+            ? 3
+            : constraints.maxWidth > 360
             ? 2
             : 1;
         return GridView.count(
           shrinkWrap: true,
           physics: const NeverScrollableScrollPhysics(),
           crossAxisCount: columns,
-          crossAxisSpacing: 14,
-          mainAxisSpacing: 14,
-          childAspectRatio: columns == 1 ? 3.4 : 1.25,
+          crossAxisSpacing: 10,
+          mainAxisSpacing: 10,
+          childAspectRatio: columns == 1 ? 4.4 : 2.15,
           children: [
             for (final stat in values)
               AppCard(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                padding: const EdgeInsets.all(14),
+                child: Row(
                   children: [
-                    Icon(stat.icon, color: stat.color),
-                    Text(
-                      stat.value,
-                      style: const TextStyle(
-                        fontSize: 26,
-                        fontWeight: FontWeight.w900,
+                    Container(
+                      width: 34,
+                      height: 34,
+                      decoration: BoxDecoration(
+                        color: stat.color.withValues(alpha: 0.14),
+                        borderRadius: BorderRadius.circular(10),
                       ),
+                      child: Icon(stat.icon, color: stat.color, size: 19),
                     ),
-                    Text(
-                      stat.label,
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                      style: const TextStyle(color: GameMentorColors.muted),
+                    const SizedBox(width: 10),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Text(
+                            stat.value,
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                            style: const TextStyle(
+                              fontSize: 21,
+                              fontWeight: FontWeight.w900,
+                            ),
+                          ),
+                          const SizedBox(height: 2),
+                          Text(
+                            stat.label,
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                            style: const TextStyle(
+                              color: GameMentorColors.muted,
+                              fontSize: 12,
+                            ),
+                          ),
+                        ],
+                      ),
                     ),
                   ],
                 ),
@@ -469,38 +500,85 @@ class _TopHeroes extends StatelessWidget {
               style: TextStyle(color: GameMentorColors.muted),
             )
           else
-            for (final hero in heroes)
-              Padding(
-                padding: const EdgeInsets.only(bottom: 14),
-                child: Row(
-                  children: [
-                    _HeroAvatar(heroId: hero.heroId),
-                    const SizedBox(width: 12),
-                    Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            heroInfoById(hero.heroId)?.nameRu ??
-                                'Герой ${hero.heroId}',
-                            style: const TextStyle(fontWeight: FontWeight.w900),
-                          ),
-                          Text(
-                            '${hero.matches} матчей · ${hero.wins} побед',
-                            style: const TextStyle(
-                              color: GameMentorColors.muted,
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                    Text(
-                      '${hero.winrate.toStringAsFixed(0)}%',
-                      style: const TextStyle(fontWeight: FontWeight.w900),
-                    ),
-                  ],
-                ),
+            for (final hero in heroes) _HeroCard(hero: hero),
+        ],
+      ),
+    );
+  }
+}
+
+class _HeroCard extends StatelessWidget {
+  const _HeroCard({required this.hero});
+
+  final DotaHeroSummary hero;
+
+  @override
+  Widget build(BuildContext context) {
+    final info = heroInfoById(hero.heroId);
+    return Container(
+      height: 92,
+      margin: const EdgeInsets.only(bottom: 10),
+      clipBehavior: Clip.antiAlias,
+      decoration: BoxDecoration(
+        color: GameMentorColors.surfaceAlt,
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: GameMentorColors.border),
+      ),
+      child: Stack(
+        fit: StackFit.expand,
+        children: [
+          if (info != null)
+            Image.network(
+              info.cardUrl,
+              fit: BoxFit.cover,
+              errorBuilder: (context, error, stackTrace) => const SizedBox(),
+            ),
+          DecoratedBox(
+            decoration: BoxDecoration(
+              gradient: LinearGradient(
+                colors: [
+                  GameMentorColors.background.withValues(alpha: 0.88),
+                  GameMentorColors.background.withValues(alpha: 0.32),
+                ],
               ),
+            ),
+          ),
+          Padding(
+            padding: const EdgeInsets.all(12),
+            child: Row(
+              children: [
+                _HeroAvatar(heroId: hero.heroId),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Text(
+                        info?.nameRu ?? 'Герой ${hero.heroId}',
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: const TextStyle(fontWeight: FontWeight.w900),
+                      ),
+                      const SizedBox(height: 4),
+                      Text(
+                        '${hero.matches} матчей · ${hero.wins} побед',
+                        style: const TextStyle(
+                          color: GameMentorColors.muted,
+                          fontSize: 13,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                const SizedBox(width: 8),
+                Text(
+                  '${hero.winrate.toStringAsFixed(0)}%',
+                  style: const TextStyle(fontWeight: FontWeight.w900),
+                ),
+              ],
+            ),
+          ),
         ],
       ),
     );
