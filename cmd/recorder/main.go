@@ -76,7 +76,7 @@ func run() error {
 			if !ok {
 				continue
 			}
-			log.Warn("Watcher event failed", "error", err)
+			return err
 		case line, ok := <-lines:
 			if !ok {
 				return nil

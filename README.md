@@ -449,6 +449,27 @@ witch_doctor.jpg
 - вторую точку сохраняет как `landing_position`;
 - экспортирует JSON в `grenade.json`.
 
+### Как Записать И Залить Гранату CS2
+
+1. В Steam добавь CS2 launch option `-condebug` и полностью перезапусти игру.
+2. В локальной тренировке CS2 введи `sv_cheats 1`.
+3. Забинди координаты: `bind "F9" "getpos"`.
+4. Запусти recorder:
+
+```powershell
+$log = "C:\Program Files (x86)\Steam\steamapps\common\Counter-Strike Global Offensive\game\csgo\console.log"
+go run ./cmd/recorder -log-path $log -map de_mirage -type smoke -out ".\exports\mirage-window-smoke.json" -yes -verbose
+```
+
+5. В CS2 встань на точку броска и нажми `F9`.
+6. Перейди к точке приземления гранаты и нажми `F9` второй раз.
+7. Recorder создаст JSON в `exports`.
+8. Запусти frontend с реальным API и открой Admin Panel.
+9. В блоке `Импорт из recorder` выбери JSON, проверь `side`, `difficulty`, название и позиции.
+10. Нажми `Добавить гранату`.
+
+Если при нажатии `F9` в recorder идут обычные строки лога, но нет `setpos`, значит `getpos` заблокирован. Проверь `sv_cheats 1` и попробуй вручную выполнить `getpos` в консоли CS2.
+
 Быстрый тест без CS2:
 
 ```powershell

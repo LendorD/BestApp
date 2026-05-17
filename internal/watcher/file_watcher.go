@@ -73,8 +73,15 @@ func (w *FileWatcher) Lines(ctx context.Context) (<-chan string, <-chan error) {
 
 func (w *FileWatcher) run(ctx context.Context, lines chan<- string, errs chan<- error) error {
 	dir := filepath.Dir(w.path)
-	if err := os.MkdirAll(dir, 0o755); err != nil {
-		return fmt.Errorf("ensure console log directory: %w", err)
+	dirStat, err := os.Stat(dir)
+	if err != nil {
+		if errors.Is(err, os.ErrNotExist) {
+			return fmt.Errorf("console log directory does not exist: %s", dir)
+		}
+		return fmt.Errorf("stat console log directory: %w", err)
+	}
+	if !dirStat.IsDir() {
+		return fmt.Errorf("console log parent path is not a directory: %s", dir)
 	}
 
 	if stat, err := os.Stat(w.path); err == nil {

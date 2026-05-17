@@ -6,6 +6,7 @@
 coverage.out
 console.log
 grenade.json
+exports/
 tmp/
 .idea/
 .vscode/

@@ -15,22 +15,33 @@
 
 ## Настройка CS2
 
-Открой консоль разработчика в CS2 и включи запись консоли в файл:
+В CS2 команда `con_logfile` может быть недоступна. Надежный способ включить запись консоли в файл - добавить launch option `-condebug` в Steam:
 
 ```text
-con_logfile "console.log"
+Steam -> Library -> Counter-Strike 2 -> Properties -> General -> Launch Options
+-condebug
 ```
 
-Назначь `getpos` на удобную клавишу:
+После этого полностью перезапусти CS2. Файл `console.log` должен появиться здесь:
+
+```text
+C:\Program Files (x86)\Steam\steamapps\common\Counter-Strike Global Offensive\game\csgo\console.log
+```
+
+В локальной тренировке включи cheats и назначь `getpos` на удобную клавишу:
+
+```text
+sv_cheats 1
+```
 
 ```text
 bind "F9" "getpos"
 ```
 
-Типичный путь к логу на Windows:
+Для проверки можно написать тестовую строку:
 
 ```text
-C:\Program Files (x86)\Steam\steamapps\common\Counter-Strike Global Offensive\game\csgo\console.log
+echo gm_test
 ```
 
 Если Steam установлен на другой диск, путь будет отличаться. Главное найти файл `game\csgo\console.log`.
@@ -126,7 +137,7 @@ JSON exported
 Самые частые причины:
 
 1. Recorder смотрит не тот файл. Всегда передавай полный путь через `-log-path`.
-2. `con_logfile "console.log"` включен уже после запуска карты, но CS2 еще не записал строку в файл.
+2. CS2 запущен без launch option `-condebug`, поэтому `console.log` не создается.
 3. `F9` был нажат до запуска recorder. По умолчанию утилита читает только новые строки.
 4. Путь Steam отличается, если библиотека стоит не на диске `C:`.
 
@@ -143,6 +154,26 @@ setpos -1032.42 -789.12 -167.97; setang -18.40 91.20 0.00
 ```
 
 Если строка не появляется, проблема не в recorder: CS2 не пишет в этот файл или bind не сработал.
+
+Если лог обновляется, но `setpos` не появляется, проверь сам bind диагностической командой:
+
+```text
+bind "F9" "echo GM_F9; getpos"
+```
+
+После нажатия `F9` в recorder должна появиться строка `GM_F9`. Если `GM_F9` есть, а `setpos` нет, введи в консоль CS2:
+
+```text
+sv_cheats 1
+getpos
+getpos_exact
+```
+
+Если `getpos_exact` работает, можно временно привязать его:
+
+```text
+bind "F9" "getpos_exact"
+```
 
 Если строка уже есть в файле, но была записана до запуска recorder, запусти так:
 
