@@ -43,6 +43,12 @@ C:\Program Files (x86)\Steam\steamapps\common\Counter-Strike Global Offensive\ga
 go run ./cmd/recorder -log-path "C:\Program Files (x86)\Steam\steamapps\common\Counter-Strike Global Offensive\game\csgo\console.log" -map de_mirage -type smoke
 ```
 
+Для первой проверки лучше включить подробный вывод:
+
+```powershell
+go run ./cmd/recorder -log-path "C:\Program Files (x86)\Steam\steamapps\common\Counter-Strike Global Offensive\game\csgo\console.log" -map de_mirage -type smoke -out ".\grenade.json" -verbose
+```
+
 Или из папки `cmd/recorder`:
 
 ```powershell
@@ -110,7 +116,38 @@ JSON exported
 -type       тип гранаты, по умолчанию smoke
 -out        путь экспорта, по умолчанию grenade.json
 -debounce   окно игнорирования дублей getpos, по умолчанию 800ms
+-from-start прочитать уже существующие строки console.log, полезно для диагностики
+-verbose    показывать каждую новую строку, которую увидел recorder
 -yes        экспортировать JSON без подтверждения
+```
+
+## Если Ничего Не Происходит
+
+Самые частые причины:
+
+1. Recorder смотрит не тот файл. Всегда передавай полный путь через `-log-path`.
+2. `con_logfile "console.log"` включен уже после запуска карты, но CS2 еще не записал строку в файл.
+3. `F9` был нажат до запуска recorder. По умолчанию утилита читает только новые строки.
+4. Путь Steam отличается, если библиотека стоит не на диске `C:`.
+
+Проверить, что CS2 пишет в лог:
+
+```powershell
+Get-Content "C:\Program Files (x86)\Steam\steamapps\common\Counter-Strike Global Offensive\game\csgo\console.log" -Tail 20 -Wait
+```
+
+В отдельном окне CS2 нажми `F9`. В PowerShell должна появиться строка:
+
+```text
+setpos -1032.42 -789.12 -167.97; setang -18.40 91.20 0.00
+```
+
+Если строка не появляется, проблема не в recorder: CS2 не пишет в этот файл или bind не сработал.
+
+Если строка уже есть в файле, но была записана до запуска recorder, запусти так:
+
+```powershell
+go run ./cmd/recorder -log-path "...\console.log" -map de_mirage -type smoke -out ".\grenade.json" -from-start -verbose
 ```
 
 ## Формат JSON

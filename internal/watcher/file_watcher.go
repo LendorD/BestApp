@@ -18,11 +18,22 @@ type FileWatcher struct {
 	path   string
 	logger *slog.Logger
 
-	offset  int64
-	partial string
+	fromStart bool
+
+	offset         int64
+	partial        string
+	emittedPartial string
 }
 
-func NewFileWatcher(path string, logger *slog.Logger) (*FileWatcher, error) {
+type Option func(*FileWatcher)
+
+func WithFromStart(fromStart bool) Option {
+	return func(w *FileWatcher) {
+		w.fromStart = fromStart
+	}
+}
+
+func NewFileWatcher(path string, logger *slog.Logger, opts ...Option) (*FileWatcher, error) {
 	absolutePath, err := filepath.Abs(path)
 	if err != nil {
 		return nil, fmt.Errorf("resolve console log path: %w", err)
@@ -30,10 +41,18 @@ func NewFileWatcher(path string, logger *slog.Logger) (*FileWatcher, error) {
 	if logger == nil {
 		logger = slog.Default()
 	}
-	return &FileWatcher{
+	w := &FileWatcher{
 		path:   filepath.Clean(absolutePath),
 		logger: logger,
-	}, nil
+	}
+	for _, opt := range opts {
+		opt(w)
+	}
+	return w, nil
+}
+
+func (w *FileWatcher) Path() string {
+	return w.path
 }
 
 func (w *FileWatcher) Lines(ctx context.Context) (<-chan string, <-chan error) {
@@ -59,8 +78,12 @@ func (w *FileWatcher) run(ctx context.Context, lines chan<- string, errs chan<- 
 	}
 
 	if stat, err := os.Stat(w.path); err == nil {
-		w.offset = stat.Size()
-		w.logger.Info("Console log connected", "path", w.path, "offset", w.offset)
+		if w.fromStart {
+			w.offset = 0
+		} else {
+			w.offset = stat.Size()
+		}
+		w.logger.Info("Console log connected", "path", w.path, "offset", w.offset, "from_start", w.fromStart)
 	} else if errors.Is(err, os.ErrNotExist) {
 		w.logger.Info("Console log does not exist yet, waiting for file", "path", w.path)
 	} else {
@@ -159,6 +182,11 @@ func (w *FileWatcher) readNewLines(lines chan<- string) error {
 		}
 		lines <- line
 	}
+	if looksLikeGetPos(w.partial) && w.partial != w.emittedPartial {
+		lines <- w.partial
+		w.emittedPartial = w.partial
+		w.partial = ""
+	}
 
 	return nil
 }
@@ -178,4 +206,8 @@ func samePath(left, right string) bool {
 		return true
 	}
 	return strings.EqualFold(left, right)
+}
+
+func looksLikeGetPos(line string) bool {
+	return strings.Contains(line, "setpos") && strings.Contains(line, "setang")
 }

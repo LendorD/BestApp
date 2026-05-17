@@ -25,7 +25,10 @@ type config struct {
 	grenadeType string
 	outputPath  string
 	debounce    time.Duration
+	fromStart   bool
+	verbose     bool
 	yes         bool
+	defaultPath bool
 }
 
 func main() {
@@ -45,16 +48,23 @@ func run() error {
 	ctx, stop := signal.NotifyContext(context.Background(), os.Interrupt, syscall.SIGTERM)
 	defer stop()
 
-	fileWatcher, err := watcher.NewFileWatcher(cfg.logPath, log)
+	fileWatcher, err := watcher.NewFileWatcher(
+		cfg.logPath,
+		log,
+		watcher.WithFromStart(cfg.fromStart),
+	)
 	if err != nil {
 		return err
+	}
+	if cfg.defaultPath {
+		log.Warn("No -log-path or CS2_CONSOLE_LOG provided; watching local console.log. Pass the real CS2 console.log path if nothing happens.", "path", fileWatcher.Path())
 	}
 
 	session := recorder.NewSession(cfg.mapName, cfg.grenadeType, cfg.debounce)
 	lines, errs := fileWatcher.Lines(ctx)
 	input := bufio.NewReader(os.Stdin)
 
-	log.Info("Recording started", "map", cfg.mapName, "grenade_type", cfg.grenadeType)
+	log.Info("Recording started", "map", cfg.mapName, "grenade_type", cfg.grenadeType, "log_path", fileWatcher.Path(), "from_start", cfg.fromStart)
 	fmt.Println("Press F9 in CS2 at the throw position, then press F9 again at the landing position.")
 
 	for {
@@ -70,6 +80,9 @@ func run() error {
 		case line, ok := <-lines:
 			if !ok {
 				return nil
+			}
+			if cfg.verbose {
+				log.Info("Console line received", "line", line)
 			}
 			capture, matched, err := parser.ParseGetPosLine(line)
 			if err != nil {
@@ -115,6 +128,7 @@ func run() error {
 }
 
 func parseFlags() config {
+	envLogPath := os.Getenv("CS2_CONSOLE_LOG")
 	defaultLogPath := os.Getenv("CS2_CONSOLE_LOG")
 	if defaultLogPath == "" {
 		defaultLogPath = "console.log"
@@ -126,8 +140,18 @@ func parseFlags() config {
 	flag.StringVar(&cfg.grenadeType, "type", "smoke", "grenade type: smoke, flash, molotov or he")
 	flag.StringVar(&cfg.outputPath, "out", "grenade.json", "JSON export path")
 	flag.DurationVar(&cfg.debounce, "debounce", 800*time.Millisecond, "duplicate getpos debounce window")
+	flag.BoolVar(&cfg.fromStart, "from-start", false, "read existing console.log content from the beginning before tailing new lines")
+	flag.BoolVar(&cfg.verbose, "verbose", false, "log every new console line seen by the recorder")
 	flag.BoolVar(&cfg.yes, "yes", false, "export JSON without confirmation after two captures")
 	flag.Parse()
+
+	logPathFlagSet := false
+	flag.Visit(func(f *flag.Flag) {
+		if f.Name == "log-path" {
+			logPathFlagSet = true
+		}
+	})
+	cfg.defaultPath = envLogPath == "" && !logPathFlagSet
 
 	return cfg
 }
