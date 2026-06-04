@@ -21,7 +21,7 @@ class EmptyState extends StatelessWidget {
       child: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
-          Icon(icon, color: GameMentorColors.blue, size: 40),
+          Icon(icon, color: AppColors.neon, size: 40),
           const SizedBox(height: 12),
           Text(
             title,
@@ -31,7 +31,7 @@ class EmptyState extends StatelessWidget {
           Text(
             message,
             textAlign: TextAlign.center,
-            style: const TextStyle(color: GameMentorColors.muted),
+            style: AppTypography.bodyMuted,
           ),
         ],
       ),

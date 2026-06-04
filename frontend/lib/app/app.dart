@@ -11,7 +11,7 @@ class GameMentorApp extends StatelessWidget {
     return MaterialApp.router(
       title: 'GameMentor',
       debugShowCheckedModeBanner: false,
-      theme: GameMentorTheme.dark(),
+      theme: AppTheme.dark(),
       routerConfig: appRouter,
     );
   }

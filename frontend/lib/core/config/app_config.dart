@@ -8,4 +8,9 @@ class AppConfig {
     'USE_MOCK_API',
     defaultValue: true,
   );
+
+  static const defaultDotaAccountId = String.fromEnvironment(
+    'DEFAULT_DOTA_ACCOUNT_ID',
+    defaultValue: '369102305',
+  );
 }

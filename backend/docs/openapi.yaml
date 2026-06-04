@@ -1,0 +1,780 @@
+openapi: 3.0.3
+info:
+  title: GameMentor API
+  version: 0.1.0
+  description: MVP API for CS2 grenade guides and Dota 2 player analytics.
+servers:
+  - url: http://localhost:8080
+paths:
+  /health:
+    get:
+      tags: [System]
+      summary: Healthcheck
+      responses:
+        "200":
+          description: Service is healthy
+  /api/v1/auth/register:
+    post:
+      tags: [Auth]
+      summary: Register a GameMentor user
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/RegisterUserInput"
+      responses:
+        "201":
+          description: Registered user
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AuthResponse"
+        "400":
+          $ref: "#/components/responses/Error"
+  /api/v1/auth/login:
+    post:
+      tags: [Auth]
+      summary: Login with email or username
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/LoginUserInput"
+      responses:
+        "200":
+          description: Current user
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AuthResponse"
+        "401":
+          $ref: "#/components/responses/Error"
+  /api/v1/users/{id}/profile:
+    get:
+      tags: [Users]
+      summary: Get saved GameMentor profile
+      parameters:
+        - $ref: "#/components/parameters/ID"
+      responses:
+        "200":
+          description: User profile
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/UserProfileResponse"
+        "404":
+          $ref: "#/components/responses/Error"
+    put:
+      tags: [Users]
+      summary: Update saved GameMentor profile
+      parameters:
+        - $ref: "#/components/parameters/ID"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UpdateUserProfileInput"
+      responses:
+        "200":
+          description: Updated user profile
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/UserProfileResponse"
+        "400":
+          $ref: "#/components/responses/Error"
+  /api/v1/cs2/maps:
+    get:
+      tags: [CS2]
+      summary: List supported CS2 maps
+      responses:
+        "200":
+          description: Maps list
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/CS2MapsResponse"
+  /api/v1/cs2/grenades:
+    post:
+      tags: [CS2]
+      summary: Create CS2 grenade
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CS2GrenadeInput"
+      responses:
+        "201":
+          description: Created grenade
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/CS2GrenadeResponse"
+        "400":
+          $ref: "#/components/responses/Error"
+    get:
+      tags: [CS2]
+      summary: List CS2 grenades
+      parameters:
+        - in: query
+          name: map
+          schema:
+            type: string
+            example: mirage
+        - in: query
+          name: side
+          schema:
+            type: string
+            enum: [T, CT]
+        - in: query
+          name: type
+          schema:
+            type: string
+            enum: [smoke, flash, molotov, he]
+        - in: query
+          name: difficulty
+          schema:
+            type: string
+            enum: [easy, medium, hard]
+        - in: query
+          name: limit
+          schema:
+            type: integer
+            default: 50
+        - in: query
+          name: offset
+          schema:
+            type: integer
+            default: 0
+      responses:
+        "200":
+          description: Grenades list
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/CS2GrenadesResponse"
+  /api/v1/cs2/grenades/{id}:
+    get:
+      tags: [CS2]
+      summary: Get CS2 grenade by id
+      parameters:
+        - $ref: "#/components/parameters/ID"
+      responses:
+        "200":
+          description: Grenade
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/CS2GrenadeResponse"
+        "404":
+          $ref: "#/components/responses/Error"
+    put:
+      tags: [CS2]
+      summary: Update CS2 grenade
+      parameters:
+        - $ref: "#/components/parameters/ID"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CS2GrenadeInput"
+      responses:
+        "200":
+          description: Updated grenade
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/CS2GrenadeResponse"
+    delete:
+      tags: [CS2]
+      summary: Delete CS2 grenade
+      parameters:
+        - $ref: "#/components/parameters/ID"
+      responses:
+        "200":
+          description: Deleted
+  /api/v1/dota/lab/players/{steam_id}/dashboard:
+    get:
+      tags: [Dota Lab]
+      summary: Get complete GameMentor Dota Lab dashboard
+      parameters:
+        - $ref: "#/components/parameters/SteamID"
+        - in: query
+          name: period
+          schema:
+            type: string
+            enum: [7d, 30d, 90d, all]
+            default: 30d
+        - in: query
+          name: role
+          schema:
+            type: string
+            enum: [all, carry, mid, offlane, support4, support5]
+            default: all
+      responses:
+        "200":
+          description: Dota Lab dashboard
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/DotaLabDashboardResponse"
+  /api/v1/dota/lab/players/{steam_id}/pro-comparison:
+    get:
+      tags: [Dota Lab]
+      summary: Get Dota Lab pro comparison chart data
+      parameters:
+        - $ref: "#/components/parameters/SteamID"
+        - $ref: "#/components/parameters/DotaLabPeriod"
+        - $ref: "#/components/parameters/DotaLabRole"
+      responses:
+        "200":
+          description: Pro comparison data
+          content:
+            application/json:
+              schema:
+                type: object
+  /api/v1/dota/lab/players/{steam_id}/heroes:
+    get:
+      tags: [Dota Lab]
+      summary: Get best and problem heroes for Dota Lab
+      parameters:
+        - $ref: "#/components/parameters/SteamID"
+        - $ref: "#/components/parameters/DotaLabPeriod"
+        - $ref: "#/components/parameters/DotaLabRole"
+      responses:
+        "200":
+          description: Hero performance section
+          content:
+            application/json:
+              schema:
+                type: object
+  /api/v1/dota/lab/players/{steam_id}/form:
+    get:
+      tags: [Dota Lab]
+      summary: Get Dota Lab form timeline
+      parameters:
+        - $ref: "#/components/parameters/SteamID"
+        - $ref: "#/components/parameters/DotaLabPeriod"
+        - $ref: "#/components/parameters/DotaLabRole"
+      responses:
+        "200":
+          description: Form timeline
+          content:
+            application/json:
+              schema:
+                type: object
+  /api/v1/dota/lab/players/{steam_id}/weaknesses:
+    get:
+      tags: [Dota Lab]
+      summary: Get detected weak points for Dota Lab
+      parameters:
+        - $ref: "#/components/parameters/SteamID"
+        - $ref: "#/components/parameters/DotaLabPeriod"
+        - $ref: "#/components/parameters/DotaLabRole"
+      responses:
+        "200":
+          description: Weakness list
+          content:
+            application/json:
+              schema:
+                type: object
+  /api/v1/dota/lab/players/{steam_id}/ai-coach-preview:
+    get:
+      tags: [Dota Lab]
+      summary: Get rule-based AI Coach preview for Dota Lab
+      parameters:
+        - $ref: "#/components/parameters/SteamID"
+        - $ref: "#/components/parameters/DotaLabPeriod"
+        - $ref: "#/components/parameters/DotaLabRole"
+      responses:
+        "200":
+          description: AI Coach preview
+          content:
+            application/json:
+              schema:
+                type: object
+  /api/v1/dota/lab/players/{steam_id}/refresh:
+    post:
+      tags: [Dota Lab]
+      summary: Clear Dota Lab cache and rebuild dashboard
+      parameters:
+        - $ref: "#/components/parameters/SteamID"
+        - $ref: "#/components/parameters/DotaLabPeriod"
+        - $ref: "#/components/parameters/DotaLabRole"
+      responses:
+        "200":
+          description: Refreshed Dota Lab dashboard
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/DotaLabDashboardResponse"
+  /api/v1/identity/dota/resolve:
+    post:
+      tags: [Identity]
+      summary: Resolve Dota account id from OpenDota ID, SteamID64, or profile URL
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [input]
+              properties:
+                input:
+                  type: string
+                  example: "https://www.opendota.com/players/369102305"
+      responses:
+        "200":
+          description: Resolved account identity
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  data:
+                    type: object
+                    properties:
+                      canonical_account_id:
+                        type: string
+                      opendota_account_id:
+                        type: string
+                      steam_id64:
+                        type: string
+                      source:
+                        type: string
+components:
+  parameters:
+    ID:
+      in: path
+      name: id
+      required: true
+      schema:
+        type: integer
+        format: int64
+    AccountID:
+      in: path
+      name: account_id
+      required: true
+      schema:
+        type: integer
+        format: int64
+    SteamID:
+      in: path
+      name: steam_id
+      required: true
+      schema:
+        type: string
+    DotaLabPeriod:
+      in: query
+      name: period
+      schema:
+        type: string
+        enum: [7d, 30d, 90d, all]
+        default: 30d
+    DotaLabRole:
+      in: query
+      name: role
+      schema:
+        type: string
+        enum: [all, carry, mid, offlane, support4, support5]
+        default: all
+  responses:
+    Error:
+      description: Unified error response
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/ErrorResponse"
+  schemas:
+    Envelope:
+      type: object
+      required: [success]
+      properties:
+        success:
+          type: boolean
+    ErrorResponse:
+      allOf:
+        - $ref: "#/components/schemas/Envelope"
+        - type: object
+          properties:
+            error:
+              type: object
+              properties:
+                code:
+                  type: string
+                message:
+                  type: string
+    CS2Map:
+      type: object
+      properties:
+        id:
+          type: integer
+          format: int64
+        code:
+          type: string
+          example: mirage
+        display_name:
+          type: string
+          example: Mirage
+        created_at:
+          type: string
+          format: date-time
+        updated_at:
+          type: string
+          format: date-time
+    UserProfile:
+      type: object
+      properties:
+        id:
+          type: integer
+          format: int64
+        email:
+          type: string
+          example: player@gamementor.local
+        username:
+          type: string
+          example: lendor
+        display_name:
+          type: string
+          example: Lendor
+        avatar_url:
+          type: string
+          example: /assets/gamementor/dota/profile-fallback.jpg
+        bio:
+          type: string
+        favorite_game:
+          type: string
+          example: CS2 + Dota 2
+        dota_account_id:
+          type: integer
+          format: int64
+          nullable: true
+        created_at:
+          type: string
+          format: date-time
+        updated_at:
+          type: string
+          format: date-time
+        last_login_at:
+          type: string
+          format: date-time
+          nullable: true
+    RegisterUserInput:
+      type: object
+      required: [email, username, password]
+      properties:
+        email:
+          type: string
+          example: player@gamementor.local
+        username:
+          type: string
+          example: lendor
+        password:
+          type: string
+          minLength: 6
+        display_name:
+          type: string
+          example: Lendor
+    LoginUserInput:
+      type: object
+      required: [identity, password]
+      properties:
+        identity:
+          type: string
+          example: player@gamementor.local
+        password:
+          type: string
+    UpdateUserProfileInput:
+      type: object
+      required: [display_name]
+      properties:
+        display_name:
+          type: string
+        avatar_url:
+          type: string
+        bio:
+          type: string
+        favorite_game:
+          type: string
+        dota_account_id:
+          type: integer
+          format: int64
+          nullable: true
+    CS2Grenade:
+      type: object
+      properties:
+        id:
+          type: integer
+          format: int64
+        map:
+          type: string
+          example: mirage
+        side:
+          type: string
+          enum: [T, CT]
+        type:
+          type: string
+          enum: [smoke, flash, molotov, he]
+        title:
+          type: string
+          example: Window smoke from T spawn
+        description:
+          type: string
+        from_position:
+          type: string
+          example: T spawn
+        to_position:
+          type: string
+          example: Window
+        difficulty:
+          type: string
+          enum: [easy, medium, hard]
+        image_url:
+          type: string
+        video_url:
+          type: string
+        tags:
+          type: array
+          items:
+            type: string
+        created_at:
+          type: string
+          format: date-time
+        updated_at:
+          type: string
+          format: date-time
+    CS2GrenadeInput:
+      type: object
+      required: [map, side, type, title, from_position, to_position, difficulty]
+      properties:
+        map:
+          type: string
+          example: mirage
+        side:
+          type: string
+          example: T
+        type:
+          type: string
+          example: smoke
+        title:
+          type: string
+        description:
+          type: string
+        from_position:
+          type: string
+        to_position:
+          type: string
+        difficulty:
+          type: string
+          example: easy
+        image_url:
+          type: string
+        video_url:
+          type: string
+        tags:
+          type: array
+          items:
+            type: string
+    DotaPlayer:
+      type: object
+      properties:
+        account_id:
+          type: integer
+          format: int64
+        persona_name:
+          type: string
+        avatar_full:
+          type: string
+        profile_url:
+          type: string
+        rank_tier:
+          type: integer
+        created_at:
+          type: string
+          format: date-time
+        updated_at:
+          type: string
+          format: date-time
+    DotaMatch:
+      type: object
+      properties:
+        match_id:
+          type: integer
+          format: int64
+        account_id:
+          type: integer
+          format: int64
+        player_slot:
+          type: integer
+        radiant_win:
+          type: boolean
+        won:
+          type: boolean
+        hero_id:
+          type: integer
+        kills:
+          type: integer
+        deaths:
+          type: integer
+        assists:
+          type: integer
+        duration_seconds:
+          type: integer
+        start_time:
+          type: string
+          format: date-time
+    DotaHeroSummary:
+      type: object
+      properties:
+        hero_id:
+          type: integer
+        matches:
+          type: integer
+        wins:
+          type: integer
+        winrate:
+          type: number
+    DotaSummary:
+      type: object
+      properties:
+        account_id:
+          type: integer
+          format: int64
+        matches:
+          type: integer
+        wins:
+          type: integer
+        losses:
+          type: integer
+        winrate:
+          type: number
+        average_kills:
+          type: number
+        average_deaths:
+          type: number
+        average_assists:
+          type: number
+        kda:
+          type: number
+        top_heroes:
+          type: array
+          items:
+            $ref: "#/components/schemas/DotaHeroSummary"
+        snapshot_id:
+          type: integer
+          format: int64
+        snapshotted_at:
+          type: string
+          format: date-time
+    CS2MapsResponse:
+      allOf:
+        - $ref: "#/components/schemas/Envelope"
+        - type: object
+          properties:
+            data:
+              type: array
+              items:
+                $ref: "#/components/schemas/CS2Map"
+    AuthResponse:
+      allOf:
+        - $ref: "#/components/schemas/Envelope"
+        - type: object
+          properties:
+            data:
+              type: object
+              properties:
+                user:
+                  $ref: "#/components/schemas/UserProfile"
+    UserProfileResponse:
+      allOf:
+        - $ref: "#/components/schemas/Envelope"
+        - type: object
+          properties:
+            data:
+              $ref: "#/components/schemas/UserProfile"
+    CS2GrenadeResponse:
+      allOf:
+        - $ref: "#/components/schemas/Envelope"
+        - type: object
+          properties:
+            data:
+              $ref: "#/components/schemas/CS2Grenade"
+    CS2GrenadesResponse:
+      allOf:
+        - $ref: "#/components/schemas/Envelope"
+        - type: object
+          properties:
+            data:
+              type: array
+              items:
+                $ref: "#/components/schemas/CS2Grenade"
+    DotaPlayerResponse:
+      allOf:
+        - $ref: "#/components/schemas/Envelope"
+        - type: object
+          properties:
+            data:
+              $ref: "#/components/schemas/DotaPlayer"
+    DotaMatchesResponse:
+      allOf:
+        - $ref: "#/components/schemas/Envelope"
+        - type: object
+          properties:
+            data:
+              type: array
+              items:
+                $ref: "#/components/schemas/DotaMatch"
+    DotaHeroStatsResponse:
+      allOf:
+        - $ref: "#/components/schemas/Envelope"
+        - type: object
+          properties:
+            data:
+              type: array
+              items:
+                $ref: "#/components/schemas/DotaHeroSummary"
+    DotaLabDashboardResponse:
+      allOf:
+        - $ref: "#/components/schemas/Envelope"
+        - type: object
+          properties:
+            data:
+              type: object
+              properties:
+                steam_id:
+                  type: string
+                period:
+                  type: string
+                role:
+                  type: string
+                player:
+                  type: object
+                summary:
+                  type: object
+                performance:
+                  type: object
+                pro_comparison:
+                  type: object
+                hero_performance:
+                  type: object
+                form_timeline:
+                  type: object
+                weaknesses:
+                  type: array
+                  items:
+                    type: object
+                ai_coach:
+                  type: object
+                training_plan:
+                  type: object
+                matches:
+                  type: array
+                  items:
+                    type: object

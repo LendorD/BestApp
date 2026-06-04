@@ -3,7 +3,9 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../../app/theme.dart';
+import '../../../core/widgets/app_badge.dart';
 import '../../../core/widgets/app_card.dart';
+import '../../../core/widgets/app_network_image.dart';
 import '../data/user_session_provider.dart';
 import '../domain/user_models.dart';
 
@@ -78,74 +80,163 @@ class _RegisterPageState extends ConsumerState<RegisterPage> {
     final session = ref.watch(userSessionProvider);
     final saving = session.isLoading;
 
+    return AppCard(
+      padding: EdgeInsets.zero,
+      radius: 16,
+      child: ClipRRect(
+        borderRadius: BorderRadius.circular(14),
+        child: LayoutBuilder(
+          builder: (context, constraints) {
+            final compact = constraints.maxWidth < 900;
+            final intro = _AuthIntro(loginMode: _loginMode);
+            final form = _AuthForm(
+              formKey: _formKey,
+              loginMode: _loginMode,
+              saving: saving,
+              emailController: _emailController,
+              usernameController: _usernameController,
+              displayNameController: _displayNameController,
+              identityController: _identityController,
+              passwordController: _passwordController,
+              confirmController: _confirmController,
+              onSubmit: _submit,
+              onModeChanged: (value) {
+                setState(() {
+                  _loginMode = value;
+                  _formKey.currentState?.reset();
+                });
+              },
+            );
+
+            if (compact) {
+              return Column(
+                children: [
+                  intro,
+                  Padding(padding: const EdgeInsets.all(18), child: form),
+                ],
+              );
+            }
+
+            return Row(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                Expanded(flex: 5, child: intro),
+                Expanded(
+                  flex: 4,
+                  child: Padding(
+                    padding: const EdgeInsets.all(22),
+                    child: form,
+                  ),
+                ),
+              ],
+            );
+          },
+        ),
+      ),
+    );
+  }
+}
+
+class _AuthIntro extends StatelessWidget {
+  const _AuthIntro({required this.loginMode});
+
+  final bool loginMode;
+
+  @override
+  Widget build(BuildContext context) {
+    return Stack(
+      children: [
+        const Positioned.fill(
+          child: AppNetworkImage(
+            imageUrl: '/assets/gamementor/home/hero.jpg',
+            fit: BoxFit.cover,
+            alignment: Alignment.centerLeft,
+          ),
+        ),
+        Positioned.fill(
+          child: DecoratedBox(
+            decoration: BoxDecoration(
+              gradient: LinearGradient(
+                begin: Alignment.centerLeft,
+                end: Alignment.centerRight,
+                colors: [
+                  AppColors.black.withValues(alpha: 0.9),
+                  AppColors.black.withValues(alpha: 0.64),
+                ],
+              ),
+            ),
+          ),
+        ),
+        Padding(
+          padding: const EdgeInsets.all(28),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              const Wrap(
+                spacing: 8,
+                runSpacing: 8,
+                children: [
+                  AppBadge(
+                    icon: Icons.workspace_premium_rounded,
+                    label: 'Member workspace',
+                  ),
+                  AppBadge(
+                    icon: Icons.lock_rounded,
+                    label: 'Secure profile',
+                    color: AppColors.cyan,
+                  ),
+                ],
+              ),
+              const SizedBox(height: 20),
+              Text(
+                loginMode ? 'Вход в GameMentor' : 'Создай профиль игрока',
+                style: Theme.of(context).textTheme.headlineMedium?.copyWith(
+                  fontWeight: FontWeight.w900,
+                  height: 1.06,
+                ),
+              ),
+              const SizedBox(height: 10),
+              const Text(
+                'Сохраняй Dota account ID, избранные CS2 раскидки, прогресс тренировок и персональные настройки.',
+                style: TextStyle(color: AppColors.textSoft, height: 1.5),
+              ),
+              const SizedBox(height: 24),
+              const _AuthFeatureList(),
+            ],
+          ),
+        ),
+      ],
+    );
+  }
+}
+
+class _AuthFeatureList extends StatelessWidget {
+  const _AuthFeatureList();
+
+  @override
+  Widget build(BuildContext context) {
+    const items = [
+      ('Dota профиль', Icons.query_stats_rounded),
+      ('CS2 избранное', Icons.star_rounded),
+      ('Тренировки', Icons.bolt_rounded),
+    ];
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        AppCard(
-          gradient: LinearGradient(
-            colors: [
-              GameMentorColors.purple.withValues(alpha: 0.24),
-              GameMentorColors.green.withValues(alpha: 0.1),
-            ],
+        for (final item in items)
+          Padding(
+            padding: const EdgeInsets.only(bottom: 10),
+            child: Row(
+              children: [
+                Icon(item.$2, color: AppColors.neon, size: 19),
+                const SizedBox(width: 9),
+                Text(
+                  item.$1,
+                  style: const TextStyle(fontWeight: FontWeight.w900),
+                ),
+              ],
+            ),
           ),
-          child: LayoutBuilder(
-            builder: (context, constraints) {
-              final compact = constraints.maxWidth < 880;
-              final intro = Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    _loginMode ? 'Вход в GameMentor' : 'Создай профиль',
-                    style: Theme.of(context).textTheme.headlineMedium?.copyWith(
-                      fontWeight: FontWeight.w900,
-                    ),
-                  ),
-                  const SizedBox(height: 10),
-                  const Text(
-                    'Сохраняй Dota account ID, избранные раскидки, прогресс тренировок и настройки профиля.',
-                    style: TextStyle(
-                      color: GameMentorColors.muted,
-                      height: 1.45,
-                    ),
-                  ),
-                ],
-              );
-
-              final form = _AuthForm(
-                formKey: _formKey,
-                loginMode: _loginMode,
-                saving: saving,
-                emailController: _emailController,
-                usernameController: _usernameController,
-                displayNameController: _displayNameController,
-                identityController: _identityController,
-                passwordController: _passwordController,
-                confirmController: _confirmController,
-                onSubmit: _submit,
-                onModeChanged: (value) {
-                  setState(() {
-                    _loginMode = value;
-                    _formKey.currentState?.reset();
-                  });
-                },
-              );
-
-              return compact
-                  ? Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [intro, const SizedBox(height: 22), form],
-                    )
-                  : Row(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Expanded(child: intro),
-                        const SizedBox(width: 28),
-                        SizedBox(width: 480, child: form),
-                      ],
-                    );
-            },
-          ),
-        ),
       ],
     );
   }
@@ -181,11 +272,13 @@ class _AuthForm extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return AppCard(
-      color: GameMentorColors.background.withValues(alpha: 0.42),
+      color: AppColors.black.withValues(alpha: 0.38),
+      hoverLift: false,
       child: Form(
         key: formKey,
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
+          mainAxisSize: MainAxisSize.min,
           children: [
             SegmentedButton<bool>(
               segments: const [

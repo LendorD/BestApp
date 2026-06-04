@@ -1,18 +1,31 @@
+BACKEND_DIR ?= backend
+FRONTEND_DIR ?= frontend
 DATABASE_URL ?= postgres://gamementor:gamementor@localhost:5432/gamementor?sslmode=disable
+FRONTEND_PORT ?= 5174
+API_BASE_URL ?= http://localhost:8080/api/v1
+DEFAULT_DOTA_ACCOUNT_ID ?= 369102305
 
-.PHONY: run test tidy build docker-up docker-down migrate-up migrate-down migrate-create recorder-run frontend-get frontend-run frontend-run-api frontend-stop frontend-build frontend-analyze
+.PHONY: run test tidy build docker-up docker-down docker-backend-up docker-frontend-up migrate-up migrate-down migrate-create recorder-run backend-run backend-test backend-tidy backend-build frontend-get frontend-run frontend-run-api frontend-stop frontend-build frontend-analyze frontend-test
 
-run:
-	go run ./cmd/api
+run: backend-run
 
-test:
-	go test ./...
+test: backend-test frontend-test
 
-tidy:
-	go mod tidy
+tidy: backend-tidy
 
-build:
-	go build ./cmd/api
+build: backend-build frontend-build
+
+backend-run:
+	cd $(BACKEND_DIR) && go run ./cmd/api
+
+backend-test:
+	cd $(BACKEND_DIR) && go test ./...
+
+backend-tidy:
+	cd $(BACKEND_DIR) && go mod tidy
+
+backend-build:
+	cd $(BACKEND_DIR) && go build ./cmd/api
 
 docker-up:
 	docker compose up --build
@@ -20,32 +33,41 @@ docker-up:
 docker-down:
 	docker compose down
 
+docker-backend-up:
+	docker compose up --build postgres migrate backend
+
+docker-frontend-up:
+	docker compose up --build frontend
+
 migrate-up:
-	migrate -path migrations -database "$(DATABASE_URL)" up
+	migrate -path $(BACKEND_DIR)/migrations -database "$(DATABASE_URL)" up
 
 migrate-down:
-	migrate -path migrations -database "$(DATABASE_URL)" down
+	migrate -path $(BACKEND_DIR)/migrations -database "$(DATABASE_URL)" down
 
 migrate-create:
-	migrate create -ext sql -dir migrations -seq $(name)
+	migrate create -ext sql -dir $(BACKEND_DIR)/migrations -seq $(name)
 
 recorder-run:
-	go run ./cmd/recorder
+	cd $(BACKEND_DIR) && go run ./cmd/recorder
 
 frontend-get:
-	cd frontend && flutter pub get
+	cd $(FRONTEND_DIR) && flutter pub get
 
 frontend-run:
-	cd frontend && flutter run -d chrome --web-port 5173
+	cd $(FRONTEND_DIR) && flutter run -d chrome --web-port $(FRONTEND_PORT)
 
 frontend-run-api:
-	cd frontend && flutter run -d chrome --web-port 5173 --dart-define=USE_MOCK_API=false --dart-define=API_BASE_URL=http://localhost:8080/api/v1
+	cd $(FRONTEND_DIR) && flutter run -d chrome --web-port $(FRONTEND_PORT) --dart-define=USE_MOCK_API=false --dart-define=API_BASE_URL=$(API_BASE_URL) --dart-define=DEFAULT_DOTA_ACCOUNT_ID=$(DEFAULT_DOTA_ACCOUNT_ID)
 
 frontend-stop:
-	powershell -NoProfile -Command "$$pids = Get-NetTCPConnection -LocalPort 5173 -ErrorAction SilentlyContinue | Select-Object -ExpandProperty OwningProcess -Unique; if ($$pids) { Stop-Process -Id $$pids -Force }"
+	powershell -NoProfile -Command "$$pids = Get-NetTCPConnection -LocalPort $(FRONTEND_PORT) -ErrorAction SilentlyContinue | Select-Object -ExpandProperty OwningProcess -Unique; if ($$pids) { Stop-Process -Id $$pids -Force }"
 
 frontend-build:
-	cd frontend && flutter build web
+	cd $(FRONTEND_DIR) && flutter build web --dart-define=USE_MOCK_API=false --dart-define=API_BASE_URL=$(API_BASE_URL) --dart-define=DEFAULT_DOTA_ACCOUNT_ID=$(DEFAULT_DOTA_ACCOUNT_ID)
 
 frontend-analyze:
-	cd frontend && flutter analyze
+	cd $(FRONTEND_DIR) && flutter analyze
+
+frontend-test:
+	cd $(FRONTEND_DIR) && flutter test

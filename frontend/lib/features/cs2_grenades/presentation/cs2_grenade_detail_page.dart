@@ -3,7 +3,9 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../../app/theme.dart';
+import '../../../core/widgets/app_badge.dart';
 import '../../../core/widgets/app_card.dart';
+import '../../../core/widgets/app_network_image.dart';
 import '../../../core/widgets/error_state.dart';
 import '../../../core/widgets/loading_state.dart';
 import '../data/cs2_grenades_providers.dart';
@@ -42,24 +44,27 @@ class _DetailContent extends StatelessWidget {
         TextButton.icon(
           onPressed: () => context.go('/cs2'),
           icon: const Icon(Icons.arrow_back_rounded),
-          label: const Text('Назад к гранатам'),
+          label: const Text('Назад к базе CS2'),
         ),
         const SizedBox(height: 14),
         LayoutBuilder(
           builder: (context, constraints) {
-            final compact = constraints.maxWidth < 920;
-            final image = _HeroImage(grenade: grenade);
-            final info = _InfoPanel(grenade: grenade);
-            return compact
-                ? Column(children: [image, const SizedBox(height: 18), info])
-                : Row(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Expanded(flex: 3, child: image),
-                      const SizedBox(width: 18),
-                      Expanded(flex: 2, child: info),
-                    ],
-                  );
+            final compact = constraints.maxWidth < 940;
+            final media = _MediaPanel(grenade: grenade);
+            final info = _InstructionPanel(grenade: grenade);
+            if (compact) {
+              return Column(
+                children: [media, const SizedBox(height: 16), info],
+              );
+            }
+            return Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Expanded(flex: 7, child: media),
+                const SizedBox(width: 16),
+                Expanded(flex: 4, child: info),
+              ],
+            );
           },
         ),
       ],
@@ -67,8 +72,8 @@ class _DetailContent extends StatelessWidget {
   }
 }
 
-class _HeroImage extends StatelessWidget {
-  const _HeroImage({required this.grenade});
+class _MediaPanel extends StatelessWidget {
+  const _MediaPanel({required this.grenade});
 
   final CS2Grenade grenade;
 
@@ -76,40 +81,33 @@ class _HeroImage extends StatelessWidget {
   Widget build(BuildContext context) {
     return AppCard(
       padding: EdgeInsets.zero,
+      radius: 16,
       child: ClipRRect(
-        borderRadius: BorderRadius.circular(18),
+        borderRadius: BorderRadius.circular(14),
         child: AspectRatio(
           aspectRatio: 16 / 10,
           child: Stack(
             fit: StackFit.expand,
             children: [
-              Image.network(
-                grenade.imageUrl,
-                fit: BoxFit.cover,
-                errorBuilder: (context, error, stackTrace) => Container(
-                  color: GameMentorColors.surfaceAlt,
-                  child: const Icon(
-                    Icons.image_not_supported_rounded,
-                    size: 40,
-                  ),
-                ),
-              ),
-              DecoratedBox(
-                decoration: BoxDecoration(
-                  gradient: LinearGradient(
-                    begin: Alignment.topCenter,
-                    end: Alignment.bottomCenter,
-                    colors: [
-                      Colors.transparent,
-                      GameMentorColors.background.withValues(alpha: 0.88),
-                    ],
+              AppNetworkImage(imageUrl: grenade.imageUrl),
+              Positioned.fill(
+                child: DecoratedBox(
+                  decoration: BoxDecoration(
+                    gradient: LinearGradient(
+                      begin: Alignment.topCenter,
+                      end: Alignment.bottomCenter,
+                      colors: [
+                        Colors.transparent,
+                        AppColors.black.withValues(alpha: 0.68),
+                      ],
+                    ),
                   ),
                 ),
               ),
               Positioned(
-                left: 24,
-                right: 24,
-                bottom: 24,
+                left: 22,
+                right: 22,
+                bottom: 22,
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
@@ -117,16 +115,29 @@ class _HeroImage extends StatelessWidget {
                       spacing: 8,
                       runSpacing: 8,
                       children: [
-                        Chip(label: Text(grenade.map.toUpperCase())),
-                        Chip(label: Text(grenade.type.toUpperCase())),
-                        Chip(label: Text(grenade.side)),
+                        AppBadge(
+                          icon: Icons.map_rounded,
+                          label: grenade.map.toUpperCase(),
+                        ),
+                        AppBadge(
+                          icon: _typeIcon(grenade.type),
+                          label: grenade.type.toUpperCase(),
+                          color: _typeColor(grenade.type),
+                        ),
+                        AppBadge(
+                          icon: Icons.flag_rounded,
+                          label: grenade.side,
+                          color: AppColors.white,
+                        ),
                       ],
                     ),
                     const SizedBox(height: 12),
                     Text(
                       grenade.title,
+                      maxLines: 2,
+                      overflow: TextOverflow.ellipsis,
                       style: Theme.of(context).textTheme.headlineMedium
-                          ?.copyWith(fontWeight: FontWeight.w900),
+                          ?.copyWith(fontWeight: FontWeight.w900, height: 1.06),
                     ),
                   ],
                 ),
@@ -139,8 +150,8 @@ class _HeroImage extends StatelessWidget {
   }
 }
 
-class _InfoPanel extends StatelessWidget {
-  const _InfoPanel({required this.grenade});
+class _InstructionPanel extends StatelessWidget {
+  const _InstructionPanel({required this.grenade});
 
   final CS2Grenade grenade;
 
@@ -151,30 +162,35 @@ class _InfoPanel extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           const Text(
-            'Детали раскидки',
-            style: TextStyle(fontSize: 20, fontWeight: FontWeight.w900),
+            'Инструкция utility',
+            style: TextStyle(fontSize: 21, fontWeight: FontWeight.w900),
+          ),
+          const SizedBox(height: 8),
+          const Text(
+            'Короткая карточка для повторения позиции, цели и сложности.',
+            style: AppTypography.bodyMuted,
           ),
           const SizedBox(height: 18),
           _InfoRow(
-            label: 'Откуда',
+            label: 'Откуда бросать',
             value: grenade.fromPosition,
             icon: Icons.place_rounded,
+            color: AppColors.neon,
           ),
           _InfoRow(
-            label: 'Куда',
+            label: 'Куда прилетает',
             value: grenade.toPosition,
             icon: Icons.flag_rounded,
+            color: AppColors.cyan,
           ),
           _InfoRow(
             label: 'Сложность',
-            value: grenade.difficulty,
+            value: _difficultyLabel(grenade.difficulty),
             icon: Icons.speed_rounded,
+            color: _difficultyColor(grenade.difficulty),
           ),
-          const SizedBox(height: 14),
-          Text(
-            grenade.description,
-            style: const TextStyle(color: GameMentorColors.muted, height: 1.55),
-          ),
+          const SizedBox(height: 10),
+          Text(grenade.description, style: AppTypography.bodyMuted),
           const SizedBox(height: 18),
           Wrap(
             spacing: 8,
@@ -189,7 +205,7 @@ class _InfoPanel extends StatelessWidget {
             child: ElevatedButton.icon(
               onPressed: grenade.videoUrl.isEmpty ? null : () {},
               icon: const Icon(Icons.play_arrow_rounded),
-              label: const Text('Смотреть видео раскидки'),
+              label: const Text('Смотреть видео'),
             ),
           ),
         ],
@@ -203,31 +219,39 @@ class _InfoRow extends StatelessWidget {
     required this.label,
     required this.value,
     required this.icon,
+    required this.color,
   });
 
   final String label;
   final String value;
   final IconData icon;
+  final Color color;
 
   @override
   Widget build(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.only(bottom: 14),
+    return Container(
+      margin: const EdgeInsets.only(bottom: 12),
+      padding: const EdgeInsets.all(13),
+      decoration: BoxDecoration(
+        color: AppColors.black.withValues(alpha: 0.36),
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: color.withValues(alpha: 0.28)),
+      ),
       child: Row(
         children: [
-          Icon(icon, color: GameMentorColors.green),
-          const SizedBox(width: 10),
+          Icon(icon, color: color),
+          const SizedBox(width: 11),
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(
-                  label,
-                  style: const TextStyle(color: GameMentorColors.muted),
-                ),
+                Text(label, style: AppTypography.label),
+                const SizedBox(height: 3),
                 Text(
                   value,
-                  style: const TextStyle(fontWeight: FontWeight.w800),
+                  maxLines: 2,
+                  overflow: TextOverflow.ellipsis,
+                  style: const TextStyle(fontWeight: FontWeight.w900),
                 ),
               ],
             ),
@@ -236,4 +260,40 @@ class _InfoRow extends StatelessWidget {
       ),
     );
   }
+}
+
+Color _typeColor(String type) {
+  return switch (type) {
+    'smoke' => AppColors.cyan,
+    'flash' => AppColors.amber,
+    'molotov' => AppColors.red,
+    'he' => AppColors.neon,
+    _ => AppColors.muted,
+  };
+}
+
+IconData _typeIcon(String type) {
+  return switch (type) {
+    'smoke' => Icons.cloud_rounded,
+    'flash' => Icons.flash_on_rounded,
+    'molotov' => Icons.local_fire_department_rounded,
+    'he' => Icons.grain_rounded,
+    _ => Icons.category_rounded,
+  };
+}
+
+Color _difficultyColor(String difficulty) {
+  return switch (difficulty) {
+    'easy' => AppColors.neon,
+    'medium' => AppColors.amber,
+    _ => AppColors.red,
+  };
+}
+
+String _difficultyLabel(String difficulty) {
+  return switch (difficulty) {
+    'easy' => 'Лёгкая',
+    'medium' => 'Средняя',
+    _ => 'Сложная',
+  };
 }

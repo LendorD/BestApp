@@ -1,7 +1,10 @@
 import 'package:flutter/material.dart';
 
 import '../../../app/theme.dart';
+import '../../../core/widgets/app_badge.dart';
 import '../../../core/widgets/app_card.dart';
+import '../../../core/widgets/app_network_image.dart';
+import '../../../core/widgets/section_header.dart';
 
 class TrainingPlansPage extends StatelessWidget {
   const TrainingPlansPage({super.key});
@@ -10,43 +13,44 @@ class TrainingPlansPage extends StatelessWidget {
   Widget build(BuildContext context) {
     final plans = [
       _TrainingPlan(
-        title: 'Практика смоков Mirage',
-        subtitle: '20 минут раскидок для мида и A execute.',
+        title: 'Mirage utility block',
+        subtitle: '20 минут смоков для мида и A execute.',
         progress: 0.68,
-        color: GameMentorColors.purple,
+        color: AppColors.cyan,
         icon: Icons.cloud_rounded,
+        imageUrl: '/assets/gamementor/cs2/maps/mirage.jpg',
       ),
       _TrainingPlan(
-        title: 'Флеши Inferno',
-        subtitle: 'Контроль банана, ретейк brackets и тайминги pop-flash.',
+        title: 'Inferno banana control',
+        subtitle: 'Флеши, тайминги pop-flash и retake brackets.',
         progress: 0.42,
-        color: GameMentorColors.blue,
-        icon: Icons.wb_sunny_rounded,
+        color: AppColors.amber,
+        icon: Icons.flash_on_rounded,
+        imageUrl: '/assets/gamementor/cs2/maps/inferno.jpg',
       ),
       _TrainingPlan(
-        title: 'Пул героев Dota',
-        subtitle: 'Снижаем разброс результатов через компактный ranked-пул.',
+        title: 'Dota hero pool reset',
+        subtitle: 'Сужаем пул и стабилизируем ranked-результаты.',
         progress: 0.31,
-        color: GameMentorColors.green,
+        color: AppColors.neon,
         icon: Icons.auto_graph_rounded,
+        imageUrl: '/assets/gamementor/home/dota-card.jpg',
       ),
     ];
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text(
-          'План тренировок',
-          style: Theme.of(
-            context,
-          ).textTheme.headlineMedium?.copyWith(fontWeight: FontWeight.w900),
+        const SectionHeader(
+          title: 'План тренировок',
+          subtitle:
+              'Персональные рутины выглядят как подписочный workflow: прогресс, фокус и следующий шаг.',
+          trailing: AppBadge(
+            icon: Icons.bolt_rounded,
+            label: 'Personal coaching',
+          ),
         ),
-        const SizedBox(height: 8),
-        const Text(
-          'Пока mock-рутины, дальше — персональные планы по статистике.',
-          style: TextStyle(color: GameMentorColors.muted),
-        ),
-        const SizedBox(height: 22),
+        const SizedBox(height: 18),
         LayoutBuilder(
           builder: (context, constraints) {
             final columns = constraints.maxWidth > 1040
@@ -58,9 +62,9 @@ class TrainingPlansPage extends StatelessWidget {
               shrinkWrap: true,
               physics: const NeverScrollableScrollPhysics(),
               crossAxisCount: columns,
-              crossAxisSpacing: 18,
-              mainAxisSpacing: 18,
-              childAspectRatio: columns == 1 ? 1.7 : 1.15,
+              crossAxisSpacing: 16,
+              mainAxisSpacing: 16,
+              childAspectRatio: columns == 1 ? 1.55 : 1.08,
               children: [for (final plan in plans) _TrainingCard(plan: plan)],
             );
           },
@@ -79,34 +83,60 @@ class _TrainingCard extends StatelessWidget {
   Widget build(BuildContext context) {
     return AppCard(
       onTap: () {},
-      gradient: LinearGradient(
-        colors: [
-          plan.color.withValues(alpha: 0.18),
-          GameMentorColors.surface.withValues(alpha: 0.78),
-        ],
-      ),
+      padding: EdgeInsets.zero,
+      borderColor: plan.color.withValues(alpha: 0.34),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Icon(plan.icon, color: plan.color, size: 38),
-          const Spacer(),
-          Text(
-            plan.title,
-            style: const TextStyle(fontSize: 20, fontWeight: FontWeight.w900),
+          Expanded(
+            child: Stack(
+              fit: StackFit.expand,
+              children: [
+                AppNetworkImage(imageUrl: plan.imageUrl),
+                Positioned(
+                  left: 14,
+                  top: 14,
+                  child: AppBadge(
+                    icon: plan.icon,
+                    label: '${(plan.progress * 100).round()}%',
+                    color: plan.color,
+                  ),
+                ),
+              ],
+            ),
           ),
-          const SizedBox(height: 8),
-          Text(
-            plan.subtitle,
-            style: const TextStyle(color: GameMentorColors.muted, height: 1.4),
-          ),
-          const SizedBox(height: 18),
-          ClipRRect(
-            borderRadius: BorderRadius.circular(999),
-            child: LinearProgressIndicator(
-              value: plan.progress,
-              minHeight: 9,
-              color: plan.color,
-              backgroundColor: GameMentorColors.surfaceAlt,
+          Padding(
+            padding: const EdgeInsets.all(18),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  plan.title,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: const TextStyle(
+                    fontSize: 20,
+                    fontWeight: FontWeight.w900,
+                  ),
+                ),
+                const SizedBox(height: 8),
+                Text(
+                  plan.subtitle,
+                  maxLines: 2,
+                  overflow: TextOverflow.ellipsis,
+                  style: AppTypography.bodyMuted,
+                ),
+                const SizedBox(height: 16),
+                ClipRRect(
+                  borderRadius: BorderRadius.circular(999),
+                  child: LinearProgressIndicator(
+                    value: plan.progress,
+                    minHeight: 9,
+                    color: plan.color,
+                    backgroundColor: AppColors.surfaceAlt,
+                  ),
+                ),
+              ],
             ),
           ),
         ],
@@ -122,6 +152,7 @@ class _TrainingPlan {
     required this.progress,
     required this.color,
     required this.icon,
+    required this.imageUrl,
   });
 
   final String title;
@@ -129,4 +160,5 @@ class _TrainingPlan {
   final double progress;
   final Color color;
   final IconData icon;
+  final String imageUrl;
 }

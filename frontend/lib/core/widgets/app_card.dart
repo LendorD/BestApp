@@ -1,5 +1,3 @@
-import 'dart:ui';
-
 import 'package:flutter/material.dart';
 
 import '../../app/theme.dart';
@@ -13,6 +11,8 @@ class AppCard extends StatefulWidget {
     this.gradient,
     this.color,
     this.borderColor,
+    this.radius = 8,
+    this.hoverLift = true,
   });
 
   final Widget child;
@@ -21,6 +21,8 @@ class AppCard extends StatefulWidget {
   final Gradient? gradient;
   final Color? color;
   final Color? borderColor;
+  final double radius;
+  final bool hoverLift;
 
   @override
   State<AppCard> createState() => _AppCardState();
@@ -32,8 +34,9 @@ class _AppCardState extends State<AppCard> {
   @override
   Widget build(BuildContext context) {
     final borderColor =
-        widget.borderColor ??
-        (_hovered ? GameMentorColors.blue : GameMentorColors.border);
+        widget.borderColor ?? (_hovered ? AppColors.neon : AppColors.border);
+    final shadowAlpha = _hovered && widget.onTap != null ? 0.5 : 0.38;
+    final radius = BorderRadius.circular(widget.radius);
 
     return MouseRegion(
       onEnter: (_) => setState(() => _hovered = true),
@@ -42,31 +45,34 @@ class _AppCardState extends State<AppCard> {
         onTap: widget.onTap,
         child: AnimatedScale(
           duration: const Duration(milliseconds: 180),
-          scale: _hovered && widget.onTap != null ? 1.015 : 1,
+          curve: Curves.easeOutCubic,
+          scale: _hovered && widget.onTap != null && widget.hoverLift
+              ? 1.006
+              : 1,
           child: AnimatedContainer(
             duration: const Duration(milliseconds: 180),
+            curve: Curves.easeOutCubic,
             padding: widget.padding,
             decoration: BoxDecoration(
-              color:
-                  widget.color ??
-                  GameMentorColors.surface.withValues(alpha: 0.76),
+              color: widget.color ?? widget.color ?? AppColors.surface,
               gradient: widget.gradient,
-              borderRadius: BorderRadius.circular(18),
-              border: Border.all(color: borderColor),
+              borderRadius: radius,
+              border: Border.all(color: borderColor.withValues(alpha: 0.92)),
               boxShadow: [
                 BoxShadow(
-                  color: GameMentorColors.purple.withValues(
-                    alpha: _hovered ? 0.18 : 0.08,
-                  ),
-                  blurRadius: _hovered ? 32 : 18,
-                  offset: const Offset(0, 18),
+                  color: AppColors.black.withValues(alpha: shadowAlpha),
+                  blurRadius: _hovered && widget.onTap != null ? 16 : 10,
+                  offset: const Offset(0, 8),
                 ),
               ],
             ),
             child: ClipRRect(
-              borderRadius: BorderRadius.circular(16),
-              child: BackdropFilter(
-                filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
+              borderRadius: BorderRadius.circular(widget.radius - 2),
+              child: DecoratedBox(
+                decoration: BoxDecoration(
+                  borderRadius: radius,
+                  color: Colors.transparent,
+                ),
                 child: widget.child,
               ),
             ),

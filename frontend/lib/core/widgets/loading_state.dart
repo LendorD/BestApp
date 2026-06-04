@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:shimmer/shimmer.dart';
 
 import '../../app/theme.dart';
 
@@ -16,7 +17,7 @@ class LoadingState extends StatelessWidget {
             padding: const EdgeInsets.only(bottom: 14),
             child: SkeletonBox(
               height: i.isEven ? 124 : 86,
-              borderRadius: BorderRadius.circular(18),
+              borderRadius: BorderRadius.circular(12),
             ),
           ),
       ],
@@ -24,7 +25,7 @@ class LoadingState extends StatelessWidget {
   }
 }
 
-class SkeletonBox extends StatefulWidget {
+class SkeletonBox extends StatelessWidget {
   const SkeletonBox({
     required this.height,
     super.key,
@@ -37,52 +38,20 @@ class SkeletonBox extends StatefulWidget {
   final BorderRadius? borderRadius;
 
   @override
-  State<SkeletonBox> createState() => _SkeletonBoxState();
-}
-
-class _SkeletonBoxState extends State<SkeletonBox>
-    with SingleTickerProviderStateMixin {
-  late final AnimationController _controller;
-
-  @override
-  void initState() {
-    super.initState();
-    _controller = AnimationController(
-      vsync: this,
-      duration: const Duration(milliseconds: 1300),
-    )..repeat();
-  }
-
-  @override
-  void dispose() {
-    _controller.dispose();
-    super.dispose();
-  }
-
-  @override
   Widget build(BuildContext context) {
-    return AnimatedBuilder(
-      animation: _controller,
-      builder: (context, child) {
-        final slide = _controller.value * 2 - 1;
-        return Container(
-          width: widget.width,
-          height: widget.height,
-          decoration: BoxDecoration(
-            borderRadius: widget.borderRadius ?? BorderRadius.circular(12),
-            gradient: LinearGradient(
-              begin: Alignment(-1 + slide, -0.2),
-              end: Alignment(1 + slide, 0.2),
-              colors: const [
-                GameMentorColors.surface,
-                GameMentorColors.surfaceAlt,
-                GameMentorColors.surface,
-              ],
-            ),
-            border: Border.all(color: GameMentorColors.border),
-          ),
-        );
-      },
+    final radius = borderRadius ?? BorderRadius.circular(12);
+    return Shimmer.fromColors(
+      baseColor: AppColors.surface,
+      highlightColor: AppColors.neon.withValues(alpha: 0.18),
+      child: Container(
+        width: width,
+        height: height,
+        decoration: BoxDecoration(
+          color: AppColors.surface,
+          borderRadius: radius,
+          border: Border.all(color: AppColors.border),
+        ),
+      ),
     );
   }
 }

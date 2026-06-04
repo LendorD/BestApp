@@ -17,7 +17,7 @@ class ErrorState extends StatelessWidget {
         children: [
           const Icon(
             Icons.warning_amber_rounded,
-            color: GameMentorColors.red,
+            color: AppColors.red,
             size: 36,
           ),
           const SizedBox(height: 12),
@@ -29,7 +29,7 @@ class ErrorState extends StatelessWidget {
           Text(
             message,
             textAlign: TextAlign.center,
-            style: const TextStyle(color: GameMentorColors.muted),
+            style: AppTypography.bodyMuted,
           ),
           if (onRetry != null) ...[
             const SizedBox(height: 16),
