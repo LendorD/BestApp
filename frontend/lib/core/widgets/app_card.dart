@@ -35,7 +35,7 @@ class _AppCardState extends State<AppCard> {
   Widget build(BuildContext context) {
     final borderColor =
         widget.borderColor ?? (_hovered ? AppColors.neon : AppColors.border);
-    final shadowAlpha = _hovered && widget.onTap != null ? 0.5 : 0.38;
+    final shadowAlpha = _hovered && widget.onTap != null ? 0.52 : 0.34;
     final radius = BorderRadius.circular(widget.radius);
 
     return MouseRegion(
@@ -60,9 +60,16 @@ class _AppCardState extends State<AppCard> {
               border: Border.all(color: borderColor.withValues(alpha: 0.92)),
               boxShadow: [
                 BoxShadow(
+                  color: AppColors.white.withValues(alpha: 0.03),
+                  blurRadius: 0,
+                  offset: const Offset(0, 1),
+                  spreadRadius: 0,
+                ),
+                BoxShadow(
                   color: AppColors.black.withValues(alpha: shadowAlpha),
-                  blurRadius: _hovered && widget.onTap != null ? 16 : 10,
-                  offset: const Offset(0, 8),
+                  blurRadius: _hovered && widget.onTap != null ? 42 : 38,
+                  offset: const Offset(0, 18),
+                  spreadRadius: -26,
                 ),
               ],
             ),

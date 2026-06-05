@@ -7,13 +7,14 @@ import '../features/auth/presentation/register_page.dart';
 import '../features/cs2/presentation/pages/cs2_dashboard_page.dart';
 import '../features/cs2/presentation/pages/cs2_training_page.dart';
 import '../features/cs2_grenades/presentation/cs2_grenade_detail_page.dart';
+import '../features/dashboard/presentation/game_dashboard_page.dart';
 import '../features/dota/presentation/pages/dota_ai_coach_page.dart';
-import '../features/dota/presentation/pages/dota_dashboard_page.dart';
 import '../features/dota/presentation/pages/dota_heroes_page.dart';
 import '../features/dota/presentation/pages/dota_player_analysis_page.dart';
 import '../features/product_switch/presentation/product_select_page.dart';
 import '../features/profile/presentation/profile_page.dart';
 import '../features/training/presentation/training_plans_page.dart';
+import '../core/storage/product_preference.dart';
 
 final _rootNavigatorKey = GlobalKey<NavigatorState>();
 final _shellNavigatorKey = GlobalKey<NavigatorState>();
@@ -35,8 +36,14 @@ final appRouter = GoRouter(
         GoRoute(
           path: '/cs2',
           name: 'cs2',
-          builder: (context, state) => const CS2DashboardPage(),
+          builder: (context, state) =>
+              const GameDashboardPage(product: ProductDirection.cs2),
           routes: [
+            GoRoute(
+              path: 'maps',
+              name: 'cs2-maps',
+              builder: (context, state) => const CS2DashboardPage(),
+            ),
             GoRoute(
               path: 'maps/:map',
               name: 'cs2-map',
@@ -92,7 +99,8 @@ final appRouter = GoRouter(
             if (accountId == null || accountId.trim().isEmpty) return null;
             return '/dota/player/${accountId.trim()}';
           },
-          builder: (context, state) => const DotaDashboardPage(),
+          builder: (context, state) =>
+              const GameDashboardPage(product: ProductDirection.dota),
           routes: [
             GoRoute(
               path: 'player/:id',

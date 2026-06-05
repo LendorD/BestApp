@@ -116,10 +116,10 @@ class _PageSurface extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return SingleChildScrollView(
-      padding: desktop ? AppSpacing.pageDesktop : AppSpacing.pageMobile,
+      padding: desktop ? const EdgeInsets.all(22) : AppSpacing.pageMobile,
       child: Center(
         child: ConstrainedBox(
-          constraints: const BoxConstraints(maxWidth: 1360),
+          constraints: const BoxConstraints(maxWidth: 1500),
           child: child,
         ),
       ),
@@ -134,29 +134,105 @@ class _TopBar extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.fromLTRB(18, 16, 28, 0),
-      child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-        decoration: BoxDecoration(
-          color: AppColors.surface,
-          border: Border.all(color: AppColors.border),
-          borderRadius: BorderRadius.circular(8),
-        ),
-        child: Row(
-          children: [
-            Expanded(child: _TopContext(product: product)),
-            const SizedBox(width: 12),
-            AppBadge(
-              icon: Icons.workspace_premium_rounded,
-              label: 'Subscription product',
-              color: AppColors.warningPro,
-            ),
-            const SizedBox(width: 10),
-            const _ApiModeBadge(compact: true),
-          ],
-        ),
+    final accent = _productAccent(product);
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 26, vertical: 14),
+      decoration: BoxDecoration(
+        color: AppColors.background.withValues(alpha: 0.62),
+        border: const Border(bottom: BorderSide(color: AppColors.border)),
       ),
+      child: Row(
+        children: [
+          Expanded(child: _TopContext(product: product)),
+          const SizedBox(width: 16),
+          ConstrainedBox(
+            constraints: const BoxConstraints(maxWidth: 240),
+            child: Container(
+              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 9),
+              decoration: BoxDecoration(
+                color: AppColors.surface,
+                borderRadius: BorderRadius.circular(8),
+                border: Border.all(color: AppColors.border),
+              ),
+              child: const Row(
+                children: [
+                  Icon(
+                    Icons.search_rounded,
+                    size: 17,
+                    color: AppColors.mutedDeep,
+                  ),
+                  SizedBox(width: 9),
+                  Expanded(
+                    child: Text(
+                      'Search player ID...',
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: TextStyle(
+                        color: AppColors.mutedDeep,
+                        fontSize: 12,
+                        fontWeight: FontWeight.w700,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+          const SizedBox(width: 12),
+          const AppBadge(
+            icon: Icons.workspace_premium_rounded,
+            label: 'PREMIUM',
+            color: AppColors.warningPro,
+          ),
+          const SizedBox(width: 8),
+          const _ApiModeBadge(compact: true),
+          const SizedBox(width: 8),
+          _TopIcon(icon: Icons.notifications_none_rounded, accent: accent),
+          const SizedBox(width: 8),
+          _TopIcon(icon: Icons.settings_rounded, accent: accent),
+          const SizedBox(width: 8),
+          Container(
+            width: 38,
+            height: 38,
+            decoration: BoxDecoration(
+              color: AppColors.background,
+              borderRadius: BorderRadius.circular(8),
+              border: Border.all(color: accent),
+            ),
+            child: Center(
+              child: Text(
+                'L',
+                style: TextStyle(
+                  color: accent,
+                  fontWeight: FontWeight.w900,
+                  fontSize: 17,
+                ),
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _TopIcon extends StatelessWidget {
+  const _TopIcon({required this.icon, required this.accent});
+
+  final IconData icon;
+  final Color accent;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      width: 38,
+      height: 38,
+      decoration: BoxDecoration(
+        color: AppColors.surface,
+        borderRadius: BorderRadius.circular(8),
+        border: Border.all(color: AppColors.border),
+      ),
+      child: Icon(icon, color: AppColors.muted, size: 18),
     );
   }
 }
@@ -168,37 +244,25 @@ class _TopContext extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final accent = _productAccent(product);
-    return Row(
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      mainAxisSize: MainAxisSize.min,
       children: [
-        Container(
-          width: 38,
-          height: 38,
-          decoration: BoxDecoration(
-            color: accent.withValues(alpha: 0.12),
-            borderRadius: BorderRadius.circular(8),
-            border: Border.all(color: accent.withValues(alpha: 0.45)),
+        Text(
+          '${product == ProductDirection.dota ? 'DOTA 2 LAB' : 'CS2 LAB'} / OVERVIEW',
+          style: const TextStyle(
+            color: AppColors.mutedDeep,
+            fontSize: 10.5,
+            fontWeight: FontWeight.w800,
+            letterSpacing: 0,
           ),
-          child: Icon(_productIcon(product), color: accent),
         ),
-        const SizedBox(width: 12),
-        Expanded(
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Text(
-                product.label,
-                style: const TextStyle(fontWeight: FontWeight.w900),
-              ),
-              const SizedBox(height: 2),
-              Text(
-                _productSubtitle(product),
-                maxLines: 1,
-                overflow: TextOverflow.ellipsis,
-                style: const TextStyle(color: AppColors.muted, fontSize: 12),
-              ),
-            ],
+        const SizedBox(height: 2),
+        Tooltip(
+          message: _productSubtitle(product),
+          child: const Text(
+            'Player Dashboard',
+            style: TextStyle(fontSize: 17, fontWeight: FontWeight.w900),
           ),
         ),
       ],
@@ -215,14 +279,11 @@ class _DesktopSidebar extends StatelessWidget {
   Widget build(BuildContext context) {
     return SafeArea(
       child: Container(
-        width: 270,
-        margin: const EdgeInsets.fromLTRB(16, 16, 8, 16),
-        padding: const EdgeInsets.all(14),
-        decoration: BoxDecoration(
+        width: 244,
+        padding: const EdgeInsets.fromLTRB(14, 20, 14, 20),
+        decoration: const BoxDecoration(
           color: AppColors.surface,
-          borderRadius: BorderRadius.circular(8),
-          border: Border.all(color: AppColors.border),
-          boxShadow: AppShadows.panel,
+          border: Border(right: BorderSide(color: AppColors.border)),
         ),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
@@ -237,7 +298,7 @@ class _DesktopSidebar extends StatelessWidget {
             const Spacer(),
             const _SidebarSectionLabel('Status'),
             const SizedBox(height: 8),
-            const _ApiModeBadge(),
+            const _LiveApiPanel(),
           ],
         ),
       ),
@@ -275,15 +336,15 @@ class _BrandMark extends StatelessWidget {
             children: [
               const Text(
                 'GameMentor',
-                style: TextStyle(fontWeight: FontWeight.w900, fontSize: 19),
+                style: TextStyle(fontWeight: FontWeight.w900, fontSize: 16),
               ),
               const SizedBox(height: 1),
               Text(
-                product.label,
+                product == ProductDirection.dota ? 'DOTA 2 LAB' : 'CS2 LAB',
                 style: TextStyle(
                   color: accent,
                   fontWeight: FontWeight.w900,
-                  fontSize: 11,
+                  fontSize: 9.5,
                 ),
               ),
             ],
@@ -396,44 +457,86 @@ class _NavButton extends StatelessWidget {
     final accent = item.accent;
 
     return Padding(
-      padding: const EdgeInsets.only(bottom: 6),
+      padding: const EdgeInsets.only(bottom: 3),
       child: InkWell(
-        borderRadius: BorderRadius.circular(8),
+        borderRadius: BorderRadius.circular(7),
         onTap: () => context.go(item.path),
-        child: Container(
-          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 11),
-          decoration: BoxDecoration(
-            color: selected
-                ? accent.withValues(alpha: 0.12)
-                : Colors.transparent,
-            borderRadius: BorderRadius.circular(8),
-            border: Border.all(
-              color: selected
-                  ? accent.withValues(alpha: 0.5)
-                  : Colors.transparent,
-            ),
-          ),
-          child: Row(
-            children: [
-              Icon(
-                item.icon,
-                color: selected ? accent : AppColors.muted,
-                size: 20,
-              ),
-              const SizedBox(width: 11),
-              Expanded(
-                child: Text(
-                  item.label,
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                  style: TextStyle(
-                    color: selected ? AppColors.text : AppColors.muted,
-                    fontWeight: selected ? FontWeight.w900 : FontWeight.w700,
+        child: Stack(
+          clipBehavior: Clip.none,
+          children: [
+            if (selected)
+              Positioned(
+                left: -14,
+                top: 8,
+                bottom: 8,
+                width: 3,
+                child: DecoratedBox(
+                  decoration: BoxDecoration(
+                    color: accent,
+                    borderRadius: BorderRadius.circular(2),
                   ),
                 ),
               ),
-            ],
-          ),
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 11, vertical: 9),
+              decoration: BoxDecoration(
+                color: selected
+                    ? accent.withValues(alpha: 0.08)
+                    : Colors.transparent,
+                borderRadius: BorderRadius.circular(7),
+                border: Border.all(
+                  color: selected
+                      ? accent.withValues(alpha: 0.24)
+                      : Colors.transparent,
+                ),
+              ),
+              child: Row(
+                children: [
+                  Icon(
+                    item.icon,
+                    color: selected ? accent : AppColors.mutedDeep,
+                    size: 18,
+                  ),
+                  const SizedBox(width: 11),
+                  Expanded(
+                    child: Text(
+                      item.label,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: TextStyle(
+                        color: selected ? AppColors.text : AppColors.muted,
+                        fontSize: 13.5,
+                        fontWeight: selected
+                            ? FontWeight.w900
+                            : FontWeight.w700,
+                      ),
+                    ),
+                  ),
+                  if (item.pro)
+                    Container(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 4,
+                        vertical: 1,
+                      ),
+                      decoration: BoxDecoration(
+                        borderRadius: BorderRadius.circular(4),
+                        border: Border.all(
+                          color: AppColors.warningPro.withValues(alpha: 0.35),
+                        ),
+                      ),
+                      child: const Text(
+                        'PRO',
+                        style: TextStyle(
+                          color: AppColors.warningPro,
+                          fontSize: 8.5,
+                          fontWeight: FontWeight.w900,
+                        ),
+                      ),
+                    ),
+                ],
+              ),
+            ),
+          ],
         ),
       ),
     );
@@ -548,6 +651,69 @@ class _ApiDot extends StatelessWidget {
   }
 }
 
+class _LiveApiPanel extends StatelessWidget {
+  const _LiveApiPanel();
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.all(12),
+      decoration: BoxDecoration(
+        color: AppColors.background,
+        borderRadius: BorderRadius.circular(8),
+        border: Border.all(color: AppColors.border),
+      ),
+      child: const Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              _LiveDot(),
+              SizedBox(width: 8),
+              Text(
+                'Live API',
+                style: TextStyle(fontWeight: FontWeight.w900, fontSize: 12),
+              ),
+            ],
+          ),
+          SizedBox(height: 5),
+          Text(
+            'OpenDota - synced 2m ago',
+            style: TextStyle(
+              color: AppColors.mutedDeep,
+              fontSize: 10.5,
+              fontWeight: FontWeight.w700,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _LiveDot extends StatelessWidget {
+  const _LiveDot();
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      width: 7,
+      height: 7,
+      decoration: BoxDecoration(
+        color: AppColors.dotaAccent,
+        shape: BoxShape.circle,
+        boxShadow: [
+          BoxShadow(
+            color: AppColors.dotaAccent.withValues(alpha: 0.8),
+            blurRadius: 6,
+          ),
+        ],
+      ),
+    );
+  }
+}
+
 class _BackgroundStage extends StatelessWidget {
   const _BackgroundStage();
 
@@ -589,6 +755,7 @@ class _NavItem {
     this.path,
     this.icon,
     this.accent,
+    this.pro,
   );
 
   final String label;
@@ -596,6 +763,7 @@ class _NavItem {
   final String path;
   final IconData icon;
   final Color accent;
+  final bool pro;
 }
 
 List<_NavItem> _navFor(ProductDirection product) {
@@ -607,13 +775,15 @@ List<_NavItem> _navFor(ProductDirection product) {
         '/dota',
         Icons.dashboard_rounded,
         AppColors.dotaAccent,
+        false,
       ),
       _NavItem(
-        'Мой профиль',
-        'Профиль',
+        'My Profile',
+        'Profile',
         '/dota?account_id=369102305',
         Icons.person_search_rounded,
         AppColors.dotaAccent,
+        false,
       ),
       _NavItem(
         'AI Coach',
@@ -621,6 +791,7 @@ List<_NavItem> _navFor(ProductDirection product) {
         '/dota/ai-coach',
         Icons.psychology_alt_rounded,
         AppColors.warningPro,
+        true,
       ),
       _NavItem(
         'Match Review',
@@ -628,6 +799,7 @@ List<_NavItem> _navFor(ProductDirection product) {
         '/dota',
         Icons.manage_search_rounded,
         AppColors.dotaAccent,
+        false,
       ),
       _NavItem(
         'Heroes',
@@ -635,6 +807,7 @@ List<_NavItem> _navFor(ProductDirection product) {
         '/dota/heroes',
         Icons.view_in_ar_rounded,
         AppColors.dotaAccent,
+        false,
       ),
       _NavItem(
         'Training',
@@ -642,6 +815,7 @@ List<_NavItem> _navFor(ProductDirection product) {
         '/dota/training',
         Icons.fitness_center_rounded,
         AppColors.warningPro,
+        false,
       ),
       _NavItem(
         'Meta',
@@ -649,6 +823,7 @@ List<_NavItem> _navFor(ProductDirection product) {
         '/dota/meta',
         Icons.auto_graph_rounded,
         AppColors.dotaAccent,
+        false,
       ),
       _NavItem(
         'Subscription',
@@ -656,16 +831,33 @@ List<_NavItem> _navFor(ProductDirection product) {
         '/dota/subscription',
         Icons.workspace_premium_rounded,
         AppColors.warningPro,
+        true,
       ),
     ],
     ProductDirection.cs2 => const [
-      _NavItem('Maps', 'Maps', '/cs2', Icons.map_rounded, AppColors.cs2Accent),
+      _NavItem(
+        'Dashboard',
+        'Home',
+        '/cs2',
+        Icons.dashboard_rounded,
+        AppColors.cs2Accent,
+        false,
+      ),
+      _NavItem(
+        'Maps',
+        'Maps',
+        '/cs2/maps',
+        Icons.map_rounded,
+        AppColors.cs2Accent,
+        false,
+      ),
       _NavItem(
         'Grenades',
         'Nades',
         '/cs2/grenades',
         Icons.grain_rounded,
         AppColors.cs2Accent,
+        false,
       ),
       _NavItem(
         'Training',
@@ -673,6 +865,7 @@ List<_NavItem> _navFor(ProductDirection product) {
         '/cs2/training',
         Icons.fitness_center_rounded,
         AppColors.warningPro,
+        false,
       ),
       _NavItem(
         'Utility Sets',
@@ -680,6 +873,7 @@ List<_NavItem> _navFor(ProductDirection product) {
         '/cs2/sets',
         Icons.view_module_rounded,
         AppColors.cs2Accent,
+        false,
       ),
       _NavItem(
         'AI Coach',
@@ -687,6 +881,7 @@ List<_NavItem> _navFor(ProductDirection product) {
         '/cs2/ai-coach',
         Icons.psychology_alt_rounded,
         AppColors.warningPro,
+        true,
       ),
       _NavItem(
         'Subscription',
@@ -694,6 +889,7 @@ List<_NavItem> _navFor(ProductDirection product) {
         '/cs2/subscription',
         Icons.workspace_premium_rounded,
         AppColors.warningPro,
+        true,
       ),
     ],
   };
