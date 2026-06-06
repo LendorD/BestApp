@@ -25,17 +25,28 @@ type Enricher interface {
 	MatchContext(ctx context.Context, matchID string) (string, error)
 }
 
+// MetricsProvider supplies a compact windowed-metrics block (percentiles,
+// sub-scores, IMP) for the review prompt. Optional (may be nil). Implemented by
+// the metrics application service.
+type MetricsProvider interface {
+	ReviewContext(ctx context.Context, steamID string) string
+}
+
 type Service struct {
 	analytics AnalyticsProvider
 	aiClient  AIClient
 	repo      coachdomain.Repository
 	cache     platformcache.Cache
 	enricher  Enricher
+	metrics   MetricsProvider
 	now       func() time.Time
 }
 
 // SetEnricher attaches an optional context enricher.
 func (s *Service) SetEnricher(e Enricher) { s.enricher = e }
+
+// SetMetrics attaches an optional windowed-metrics provider.
+func (s *Service) SetMetrics(m MetricsProvider) { s.metrics = m }
 
 func NewService(analytics AnalyticsProvider, aiClient AIClient, repo coachdomain.Repository, cacheStore ...platformcache.Cache) *Service {
 	service := &Service{
@@ -68,6 +79,12 @@ func (s *Service) ReviewDotaPlayer(ctx context.Context, steamID string) (*coachd
 	// Append optional extra context (OpenDota aggregates, Stratz).
 	if s.enricher != nil {
 		if extra := s.enricher.PlayerContext(ctx, steamID); extra != "" {
+			prompt = prompt + "\n\n" + extra
+		}
+	}
+	// Append windowed metrics (percentiles, sub-scores, IMP) when available.
+	if s.metrics != nil {
+		if extra := s.metrics.ReviewContext(ctx, steamID); extra != "" {
 			prompt = prompt + "\n\n" + extra
 		}
 	}

@@ -115,6 +115,7 @@ func NewModules(cfg *config.Config, pool *pgxpool.Pool, cacheStore platformcache
 	enricher := aicoachenrich.New(openDotaClient, cfg.StratzAPIKey, cfg.AITimeout)
 	aiCoachService := aicoachapp.NewService(statisticsService, aiClient, aicoachmemoryrepo.New(), cacheStore)
 	aiCoachService.SetEnricher(enricher)
+	aiCoachService.SetMetrics(metricsService)
 
 	var jobsService *jobsapp.Service
 	var jobsHandler *jobshttp.Handler

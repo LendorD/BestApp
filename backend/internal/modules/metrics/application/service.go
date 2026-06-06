@@ -254,6 +254,55 @@ func (s *Service) scores(r *Report, kda float64) Scores {
 	}
 }
 
+// ReviewContext renders a compact text block of the player's recent-form
+// metrics (with percentiles, sub-scores and IMP) for the AI Coach prompt.
+// Best-effort: returns "" if nothing useful could be gathered.
+func (s *Service) ReviewContext(ctx context.Context, steamID string) string {
+	report, err := s.Build(ctx, steamID, 0, 50)
+	if err != nil || report == nil || report.Games == 0 {
+		return ""
+	}
+	var b strings.Builder
+	b.WriteString("WINDOWED METRICS (last ")
+	b.WriteString(strconv.Itoa(report.Games))
+	b.WriteString(" games)\n")
+	for _, m := range report.Metrics {
+		b.WriteString("- ")
+		b.WriteString(m.Label)
+		b.WriteString(": ")
+		b.WriteString(strconv.FormatFloat(m.Value, 'f', -1, 64))
+		if m.Unit != "" {
+			b.WriteString(m.Unit)
+		}
+		if m.Percentile != nil {
+			b.WriteString(" (")
+			b.WriteString(strconv.FormatFloat(*m.Percentile, 'f', 0, 64))
+			b.WriteString("th percentile vs hero bracket)")
+		}
+		b.WriteString("\n")
+	}
+	sc := report.Scores
+	b.WriteString("- Sub-scores (0-100): Farm ")
+	b.WriteString(strconv.Itoa(sc.Farm))
+	b.WriteString(", Fighting ")
+	b.WriteString(strconv.Itoa(sc.Fighting))
+	b.WriteString(", Objectives ")
+	b.WriteString(strconv.Itoa(sc.Objectives))
+	b.WriteString(", Vision ")
+	b.WriteString(strconv.Itoa(sc.Vision))
+	b.WriteString(", Stability ")
+	b.WriteString(strconv.Itoa(sc.Stability))
+	b.WriteString(", Overall ")
+	b.WriteString(strconv.Itoa(sc.Overall))
+	b.WriteString("\n")
+	if report.AvgIMP != nil {
+		b.WriteString("- Stratz average IMP (impact on win, -100..+100): ")
+		b.WriteString(strconv.FormatFloat(*report.AvgIMP, 'f', 1, 64))
+		b.WriteString("\n")
+	}
+	return b.String()
+}
+
 // --- benchmarks ---
 
 type benchData struct {

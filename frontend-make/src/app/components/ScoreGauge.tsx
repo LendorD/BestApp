@@ -1,3 +1,4 @@
+import { Info } from "lucide-react";
 import { usePlayer } from "../../lib/store";
 
 const PALETTE = ["#00D084", "#3B82F6", "#A78BFA", "#F59E0B", "#06B6D4", "#EC4899"];
@@ -51,7 +52,23 @@ export function ScoreGauge() {
 
   return (
     <div className="rounded-lg p-5" style={{ background: "#0B0E13", border: "1px solid #1B2430" }}>
-      <div style={{ fontFamily: "Manrope, sans-serif", fontWeight: 700, fontSize: 13, color: "#F4F6FA", marginBottom: 16 }}>GameMentor Score</div>
+      <div className="flex items-center gap-1.5 relative group" style={{ marginBottom: 16, width: "fit-content" }}>
+        <span style={{ fontFamily: "Manrope, sans-serif", fontWeight: 700, fontSize: 13, color: "#F4F6FA" }}>GameMentor Score</span>
+        <Info size={13} color="#8A94A6" style={{ cursor: "help" }} />
+        <div className="absolute left-0 top-full mt-2 z-30 opacity-0 pointer-events-none group-hover:opacity-100 transition-opacity"
+          style={{ width: 280, background: "#10141B", border: "1px solid #1B2430", borderRadius: 10, padding: 12, boxShadow: "0 18px 40px -18px rgba(0,0,0,0.9)" }}>
+          <div style={{ fontFamily: "Manrope, sans-serif", fontWeight: 700, fontSize: 12, color: "#F4F6FA", marginBottom: 6 }}>Как считается оценка</div>
+          <div style={{ fontFamily: "Manrope, sans-serif", fontSize: 11.5, color: "#8A94A6", lineHeight: 1.5 }}>
+            Метрики окна (GPM, XPM, CS, урон…) переводятся в <b style={{ color: "#F4F6FA" }}>перцентили</b> относительно брекета через OpenDota benchmarks, плюс учитывается <b style={{ color: "#F4F6FA" }}>IMP</b> от Stratz. Из них собираются под-оценки:
+          </div>
+          <div style={{ fontFamily: "JetBrains Mono, monospace", fontSize: 10.5, color: "#8A94A6", lineHeight: 1.7, marginTop: 6 }}>
+            Overall = Фарм·30% + Бой·30% +<br />Объекты·15% + Стабильность·15% + Вижн·10%
+          </div>
+          <div style={{ fontFamily: "Manrope, sans-serif", fontSize: 11, color: "#8A94A6", lineHeight: 1.5, marginTop: 6 }}>
+            Стабильность — меньше смертей + винрейт. Чем выше перцентиль, тем выше балл.
+          </div>
+        </div>
+      </div>
       <div className="flex flex-col items-center mb-4">
         <div className="relative">
           <GaugeArc score={score} />
