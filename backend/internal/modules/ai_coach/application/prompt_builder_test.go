@@ -5,7 +5,7 @@ import (
 	"testing"
 	"time"
 
-	analyticsdomain "gamementor/internal/modules/analytics/domain"
+	analyticsdomain "gamementor/internal/modules/statistics/domain"
 )
 
 func TestBuildDotaReviewPrompt(t *testing.T) {

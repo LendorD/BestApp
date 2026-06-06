@@ -1,0 +1,60 @@
+name: Deploy frontend to GitHub Pages
+
+# Builds frontend-make and publishes it to GitHub Pages.
+# Set the backend URL once in: Settings -> Secrets and variables -> Actions -> Variables
+#   API_BASE_URL = https://<your-render-service>.onrender.com/api/v1
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - "frontend-make/**"
+      - ".github/workflows/deploy-frontend.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: pages
+  cancel-in-progress: true
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: frontend-make
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: Install dependencies
+        run: npm install
+
+      - name: Build
+        env:
+          # Served from https://<user>.github.io/<repo>/
+          VITE_BASE: "/${{ github.event.repository.name }}/"
+          # Falls back to demo mode if the variable is not set.
+          VITE_API_BASE_URL: ${{ vars.API_BASE_URL }}
+        run: npm run build
+
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: frontend-make/dist
+
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - id: deployment
+        uses: actions/deploy-pages@v4

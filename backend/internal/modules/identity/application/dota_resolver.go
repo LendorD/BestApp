@@ -1,6 +1,7 @@
 package application
 
 import (
+	"context"
 	"fmt"
 	"net/url"
 	"regexp"
@@ -17,10 +18,75 @@ var (
 	profilePathPattern = regexp.MustCompile(`/profiles/(\d+)`)
 )
 
-type Service struct{}
+// SteamResolver resolves a Steam custom (vanity) URL name to a SteamID64.
+// Implemented by internal/clients/steam. Optional (may be nil).
+type SteamResolver interface {
+	ResolveVanity(ctx context.Context, vanity string) (string, error)
+	Enabled() bool
+}
 
-func NewService() *Service {
-	return &Service{}
+type Service struct {
+	steam SteamResolver
+}
+
+// NewService accepts an optional Steam resolver (variadic keeps existing callers/tests working).
+func NewService(steam ...SteamResolver) *Service {
+	svc := &Service{}
+	if len(steam) > 0 {
+		svc.steam = steam[0]
+	}
+	return svc
+}
+
+var vanityPathPattern = regexp.MustCompile(`/id/([^/]+)`)
+var vanityBarePattern = regexp.MustCompile(`^[A-Za-z0-9_.-]{2,64}$`)
+
+// extractVanity returns a Steam custom-URL name from /id/<name> links or a bare
+// non-numeric handle; "" when the input is not a vanity candidate.
+func extractVanity(input string) string {
+	in := strings.Trim(strings.TrimSpace(input), ` "'`)
+	if parsed, err := url.Parse(in); err == nil && parsed.Host != "" {
+		if strings.Contains(strings.ToLower(parsed.Host), "steamcommunity.com") {
+			if m := vanityPathPattern.FindStringSubmatch(parsed.EscapedPath()); len(m) > 1 {
+				return m[1]
+			}
+		}
+		return ""
+	}
+	if _, err := strconv.ParseInt(in, 10, 64); err == nil {
+		return ""
+	}
+	if vanityBarePattern.MatchString(in) {
+		return in
+	}
+	return ""
+}
+
+// ResolveDotaAccountAuto first tries the offline parser, then falls back to
+// resolving a Steam vanity URL via the Steam Web API (if configured).
+func (s *Service) ResolveDotaAccountAuto(ctx context.Context, rawInput string) (*ResolveDotaAccountResult, error) {
+	if res, err := s.ResolveDotaAccount(rawInput); err == nil {
+		return res, nil
+	}
+	vanity := extractVanity(rawInput)
+	if vanity == "" {
+		// not a vanity: return the original parser error
+		_, err := s.ResolveDotaAccount(rawInput)
+		return nil, err
+	}
+	if s.steam == nil || !s.steam.Enabled() {
+		return nil, domain.ValidationError("для ссылки /id/<имя> нужен STEAM_API_KEY; либо используйте SteamID64 или ссылку /profiles/<id>")
+	}
+	steamID64, err := s.steam.ResolveVanity(ctx, vanity)
+	if err != nil {
+		return nil, domain.ValidationError("не удалось определить профиль Steam: " + err.Error())
+	}
+	res, err := s.ResolveDotaAccount(steamID64)
+	if err != nil {
+		return nil, err
+	}
+	res.Source = "steam_vanity_url"
+	return res, nil
 }
 
 type ResolveDotaAccountInput struct {

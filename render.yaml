@@ -1,0 +1,49 @@
+# Render blueprint for the GameMentor Go backend.
+# Deploy: https://dashboard.render.com -> New -> Blueprint -> pick this repo.
+# Secrets (DATABASE_URL, REDIS_URL, AI_*, STEAM/STRATZ) are set in the dashboard,
+# never committed. Render injects $PORT automatically; the app reads it.
+services:
+  - type: web
+    name: gamementor-api
+    runtime: docker
+    plan: free
+    rootDir: backend
+    dockerfilePath: Dockerfile
+    healthCheckPath: /health
+    autoDeploy: true
+    envVars:
+      - key: APP_ENV
+        value: production
+      # --- Neon Postgres connection string (Settings -> set value) ---
+      - key: DATABASE_URL
+        sync: false
+      # --- Upstash Redis URL, rediss://... (Settings -> set value) ---
+      - key: REDIS_URL
+        sync: false
+      # --- Auth: a strong secret is generated once and kept by Render ---
+      - key: JWT_SECRET
+        generateValue: true
+      - key: JWT_TTL
+        value: 168h
+      # --- OpenDota (no key needed for basic use) ---
+      - key: OPENDOTA_BASE_URL
+        value: https://api.opendota.com
+      - key: OPENDOTA_TIMEOUT
+        value: 10s
+      # --- Optional integrations (set in dashboard if you use them) ---
+      - key: STEAM_API_KEY
+        sync: false
+      - key: STRATZ_API_KEY
+        sync: false
+      - key: AI_PROVIDER
+        sync: false
+      - key: AI_API_KEY
+        sync: false
+      - key: AI_MODEL
+        sync: false
+      - key: AI_BASE_URL
+        sync: false
+      - key: AI_TIMEOUT
+        value: 60s
+      - key: JOBS_ENABLED
+        value: "true"

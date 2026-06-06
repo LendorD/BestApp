@@ -28,6 +28,15 @@ func (h *Handler) ReviewDotaPlayer(c *gin.Context) {
 	response.OK(c, report)
 }
 
+func (h *Handler) ReviewDotaMatch(c *gin.Context) {
+	report, err := h.service.ReviewDotaMatch(c.Request.Context(), c.Query("steam_id"), c.Param("match_id"))
+	if err != nil {
+		writeError(c, err)
+		return
+	}
+	response.OK(c, report)
+}
+
 func (h *Handler) LatestDotaReport(c *gin.Context) {
 	report, err := h.service.LatestDotaReport(c.Request.Context(), c.Param("steam_id"))
 	if err != nil {

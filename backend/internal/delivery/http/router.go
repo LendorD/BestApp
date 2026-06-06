@@ -4,23 +4,35 @@ import (
 	"log/slog"
 	"net/http"
 
-	"gamementor/internal/delivery/http/handler"
 	"gamementor/internal/delivery/http/middleware"
 	aicoachhttp "gamementor/internal/modules/ai_coach/delivery/http"
-	analyticshttp "gamementor/internal/modules/analytics/delivery/http"
+	authhttp "gamementor/internal/modules/auth/delivery/http"
+	billinghttp "gamementor/internal/modules/billing/delivery/http"
+	cs2http "gamementor/internal/modules/cs2/delivery/http"
+	dotahttp "gamementor/internal/modules/dota/delivery/http"
+	explorerhttp "gamementor/internal/modules/explorer/delivery/http"
+	metricshttp "gamementor/internal/modules/metrics/delivery/http"
 	identityhttp "gamementor/internal/modules/identity/delivery/http"
 	jobshttp "gamementor/internal/modules/jobs/delivery/http"
+	usershttp "gamementor/internal/modules/users/delivery/http"
 
 	"github.com/gin-gonic/gin"
 )
 
+// RouterHandlers carries every module's HTTP handler. The router only wires
+// modules; it contains no business logic.
 type RouterHandlers struct {
-	CS2       *handler.CS2Handler
-	User      *handler.UserHandler
-	Analytics *analyticshttp.Handler
-	AICoach   *aicoachhttp.Handler
-	Identity  *identityhttp.Handler
-	Jobs      *jobshttp.Handler
+	CS2            *cs2http.Handler
+	Users          *usershttp.Handler
+	Auth           *authhttp.Handler
+	Billing        *billinghttp.Handler
+	Dota           *dotahttp.Handler
+	Explorer       *explorerhttp.Handler
+	Metrics        *metricshttp.Handler
+	AICoach        *aicoachhttp.Handler
+	Identity       *identityhttp.Handler
+	Jobs           *jobshttp.Handler
+	AuthMiddleware gin.HandlerFunc
 }
 
 func NewRouter(log *slog.Logger, handlers RouterHandlers) *gin.Engine {
@@ -35,37 +47,34 @@ func NewRouter(log *slog.Logger, handlers RouterHandlers) *gin.Engine {
 	router.GET("/health", func(c *gin.Context) {
 		c.JSON(http.StatusOK, gin.H{"success": true, "data": gin.H{"status": "ok"}})
 	})
-
-	router.GET("/swagger", func(c *gin.Context) {
-		c.File("./docs/swagger.html")
-	})
-	router.GET("/swagger/openapi.yaml", func(c *gin.Context) {
-		c.File("./docs/openapi.yaml")
-	})
+	router.GET("/swagger", func(c *gin.Context) { c.File("./docs/swagger.html") })
+	router.GET("/swagger/openapi.yaml", func(c *gin.Context) { c.File("./docs/openapi.yaml") })
 
 	api := router.Group("/api/v1")
 	api.GET("/health", func(c *gin.Context) {
 		c.JSON(http.StatusOK, gin.H{"success": true, "data": gin.H{"status": "ok"}})
 	})
 
-	auth := api.Group("/auth")
-	auth.POST("/register", handlers.User.Register)
-	auth.POST("/login", handlers.User.Login)
-
-	users := api.Group("/users")
-	users.GET("/:id/profile", handlers.User.GetProfile)
-	users.PUT("/:id/profile", handlers.User.UpdateProfile)
-
-	cs2 := api.Group("/cs2")
-	cs2.GET("/maps", handlers.CS2.ListMaps)
-	cs2.POST("/grenades", handlers.CS2.CreateGrenade)
-	cs2.GET("/grenades", handlers.CS2.ListGrenades)
-	cs2.GET("/grenades/:id", handlers.CS2.GetGrenade)
-	cs2.PUT("/grenades/:id", handlers.CS2.UpdateGrenade)
-	cs2.DELETE("/grenades/:id", handlers.CS2.DeleteGrenade)
-
-	if handlers.Analytics != nil {
-		analyticshttp.RegisterRoutes(api, handlers.Analytics)
+	if handlers.Auth != nil {
+		authhttp.RegisterRoutes(api, handlers.Auth, handlers.AuthMiddleware)
+	}
+	if handlers.Users != nil {
+		usershttp.RegisterRoutes(api, handlers.Users, handlers.AuthMiddleware)
+	}
+	if handlers.Billing != nil {
+		billinghttp.RegisterRoutes(api, handlers.Billing, handlers.AuthMiddleware)
+	}
+	if handlers.CS2 != nil {
+		cs2http.RegisterRoutes(api, handlers.CS2)
+	}
+	if handlers.Dota != nil {
+		dotahttp.RegisterRoutes(api, handlers.Dota)
+	}
+	if handlers.Explorer != nil {
+		explorerhttp.RegisterRoutes(api, handlers.Explorer)
+	}
+	if handlers.Metrics != nil {
+		metricshttp.RegisterRoutes(api, handlers.Metrics)
 	}
 	if handlers.AICoach != nil {
 		aicoachhttp.RegisterRoutes(api, handlers.AICoach)

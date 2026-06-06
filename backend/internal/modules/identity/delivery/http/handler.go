@@ -22,7 +22,7 @@ func (h *Handler) ResolveDotaAccount(c *gin.Context) {
 		return
 	}
 
-	result, err := h.service.ResolveDotaAccount(input.Input)
+	result, err := h.service.ResolveDotaAccountAuto(c.Request.Context(), input.Input)
 	if err != nil {
 		response.Error(c, err)
 		return

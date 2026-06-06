@@ -7,14 +7,19 @@ import (
 	"time"
 
 	dotadomain "gamementor/internal/modules/dota/domain"
+	statisticsapp "gamementor/internal/modules/statistics/application"
 	platformcache "gamementor/internal/platform/cache"
 )
 
 type Service struct {
 	statsProvider dotadomain.PlayerStatsProvider
 	matchProvider dotadomain.MatchDetailsProvider
+	stats         *statisticsapp.Service
 	cache         platformcache.Cache
 }
+
+// SetStatistics injects the statistics service used for analytics/lab endpoints.
+func (s *Service) SetStatistics(stats *statisticsapp.Service) { s.stats = stats }
 
 func NewService(statsProvider dotadomain.PlayerStatsProvider, matchProvider dotadomain.MatchDetailsProvider, cacheStore ...platformcache.Cache) *Service {
 	service := &Service{statsProvider: statsProvider, matchProvider: matchProvider}

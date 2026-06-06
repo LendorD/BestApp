@@ -1,106 +1,70 @@
-# GameMentor Backend Architecture
+# GameMentor Backend — Architecture
 
-GameMentor is moving to an incremental modular backend architecture. The migration keeps the existing business logic alive while new features are added behind explicit module boundaries.
+GameMentor is a multi-game esports analytics platform (Dota 2, CS2, and future
+titles). The backend is a Go service built around **modular Clean / Hexagonal
+architecture**: every business domain is an isolated module with the same
+internal layering, wired together centrally.
 
-## Goals
+## Layering (per module)
 
-- Preserve existing CS2, users, and legacy Dota endpoints.
-- Move new Dota, analytics, AI Coach, cache, and jobs behavior into `internal/modules`.
-- Keep domain packages free from database, HTTP, Redis, AI, and provider dependencies.
-- Pass all dependencies through constructors.
-- Use `context.Context` for all I/O.
-- Keep DTOs separate from domain entities.
-
-## Runtime Layout
-
-```text
-cmd/
-  api/main.go
-  app/main.go
-
-internal/
-  app/
-    app.go
-    bootstrap.go
-    modules.go
-  config/
-  platform/
-    ai/
-    cache/
-    database/
-    http/
-    logger/
-    postgres/
-    queue/
-  modules/
-    auth/
-    users/
-    dota/
-    analytics/
-    ai_coach/
-    billing/
-    jobs/
+```
+internal/modules/<module>/
+  domain/                       # entities, value objects, domain errors, ports (interfaces)
+  application/                  # use-case services (business logic), DTOs for services
+  delivery/http/                # Gin handlers + RegisterRoutes + request/response DTOs
+  infrastructure/
+    repository/postgres/        # pgx repositories (implement domain ports)
+    provider/                   # external API clients (OpenDota, Stratz, Steam, OpenAI...)
 ```
 
-`cmd/api` is the existing entrypoint. `cmd/app` is the new target entrypoint requested by the modular layout. Both call the same `app.Run()` function.
+### Dependency rule (strict, inward-only)
+- `delivery/http` → `application` → `domain`
+- `infrastructure` → implements interfaces declared in `domain`/`application`
+- **`domain` imports nothing technical** (no Gin, pgx, Redis, OpenAI, OpenDota, Steam, HTTP).
+- All external dependencies are reached through interfaces.
+- Every I/O method takes `context.Context`.
 
-## Layers
+### Handler rules
+HTTP handlers only: bind/validate request DTO → call application service →
+map result to response DTO. No business logic, no SQL, no provider calls.
 
-Each new business module follows this direction of dependencies:
+## Modules
 
-```text
-delivery/http -> application -> domain
-infrastructure -> domain/application interfaces
+| Module | Responsibility |
+|--------|----------------|
+| `users` | user profiles, settings (Dota ID, preferences) |
+| `auth` | registration, login, sessions/tokens |
+| `cs2` | CS2 maps & grenade library, recorder import |
+| `dota` | Dota player profile, matches, hero stats (OpenDota/Stratz/Steam providers) |
+| `statistics` | game-agnostic stats/analytics service (Dota now, CS2 + future games later) |
+| `ai_coach` | LLM-based reviews of players and individual matches |
+| `jobs` | background jobs (refresh stats, build snapshots, generate reports) |
+| `identity` | resolve Steam vanity/SteamID/profile URL → account id |
+| `billing` | subscriptions / paid features (planned) |
+
+## Platform (cross-cutting, not business)
+```
+internal/platform/cache         # cache.Cache interface + memory & redis impls
+internal/platform/...            # logger, http server, postgres pool helpers
+internal/config                  # env config
+internal/clients/<vendor>        # low-level external HTTP clients (opendota, steam)
+internal/app                     # bootstrap + wiring + module registration (the ONLY composition root)
+internal/delivery/http/router.go # registers each module's routes; no business logic
 ```
 
-Domain is pure business data, contracts, and errors. Application owns use-cases. Infrastructure owns external clients, providers, repositories, and framework adapters. Delivery owns HTTP handlers and route registration only.
+## Wiring
+`internal/app/bootstrap.go` builds config, db pool, cache, logger.
+`internal/app/modules.go` constructs every module's repos/providers/services/handlers
+and exposes them to the router. `router.go` calls each module's `RegisterRoutes(group, handler)`.
 
-## Bootstrap
+## Adding a new game (e.g. Valorant)
+1. `internal/modules/valorant/{domain,application,delivery/http,infrastructure/provider}`.
+2. Implement a provider for the data source behind a domain port.
+3. Register the game in the `statistics` service (game-agnostic metrics).
+4. Wire it in `modules.go`, register routes in `router.go`. No other module changes.
 
-`internal/app/bootstrap.go` creates platform dependencies such as PostgreSQL and cache.
-
-`internal/app/modules.go` wires repositories, use-cases, module services, handlers, and job handlers.
-
-`internal/delivery/http/router.go` registers:
-
-- legacy routes that existed before the refactor;
-- new modular routes for Dota, analytics, AI Coach, and jobs.
-
-## Cache
-
-`internal/platform/cache` exposes:
-
-```go
-type Cache interface {
-    Get(ctx context.Context, key string, dest any) error
-    Set(ctx context.Context, key string, value any, ttl time.Duration) error
-    Delete(ctx context.Context, key string) error
-}
-```
-
-Implementations:
-
-- `memory` for local development;
-- `redis` for production-ready deployment.
-
-Current TTLs:
-
-- Dota profile: 24h
-- Recent matches: 30m
-- Hero stats: 30m
-- Match details: 7d
-- Analytics snapshot: 15m
-- AI report: no TTL until manual refresh
-
-## Graceful Degradation
-
-OpenDota remains the first working Dota provider. STRATZ, Steam, and AI provider clients can be disabled without breaking the application. Disabled providers return:
-
-```text
-provider disabled or api key is missing
-```
-
-## Database Strategy
-
-Existing tables remain untouched. Migration `000004_modular_dota_ai_jobs` adds new modular tables with `raw_json`, `normalized_json`, `source`, `fetched_at`, `expires_at`, `created_at`, and `updated_at` so analytics can be recalculated later without another external API call.
-
+## Statistics as a separate service
+`statistics` does NOT own raw data. It depends on per-game data ports
+(`DotaDataSource`, `CS2DataSource`, ...) and computes normalized metrics,
+performance scores, form timelines, pro comparisons. This keeps scoring logic in
+one place and reusable across games and across `ai_coach`.

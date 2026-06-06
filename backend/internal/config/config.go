@@ -18,9 +18,13 @@ type Config struct {
 	AIProvider        string
 	AIAPIKey          string
 	AIModel           string
+	AIBaseURL         string
+	JWTSecret         string
 	CacheEnabled      bool
 	JobsEnabled       bool
 	OpenDotaTimeout   time.Duration
+	AITimeout         time.Duration
+	JWTTTL            time.Duration
 	ReadHeaderTimeout time.Duration
 	ShutdownTimeout   time.Duration
 }
@@ -28,7 +32,7 @@ type Config struct {
 func Load() (*Config, error) {
 	cfg := &Config{
 		AppEnv:          getEnv("APP_ENV", "local"),
-		HTTPAddr:        getEnv("HTTP_ADDR", ":8080"),
+		HTTPAddr:        httpAddr(),
 		DatabaseURL:     getEnv("DATABASE_URL", ""),
 		RedisURL:        getEnv("REDIS_URL", ""),
 		OpenDotaBaseURL: getEnv("OPENDOTA_BASE_URL", "https://api.opendota.com"),
@@ -38,6 +42,8 @@ func Load() (*Config, error) {
 		AIProvider:      getEnv("AI_PROVIDER", ""),
 		AIAPIKey:        getEnv("AI_API_KEY", ""),
 		AIModel:         getEnv("AI_MODEL", ""),
+		AIBaseURL:       getEnv("AI_BASE_URL", ""),
+		JWTSecret:       getEnv("JWT_SECRET", ""),
 		CacheEnabled:    parseBoolEnv("CACHE_ENABLED", true),
 		JobsEnabled:     parseBoolEnv("JOBS_ENABLED", true),
 	}
@@ -51,6 +57,14 @@ func Load() (*Config, error) {
 	if err != nil {
 		return nil, err
 	}
+	cfg.AITimeout, err = parseDurationEnv("AI_TIMEOUT", 60*time.Second)
+	if err != nil {
+		return nil, err
+	}
+	cfg.JWTTTL, err = parseDurationEnv("JWT_TTL", 168*time.Hour)
+	if err != nil {
+		return nil, err
+	}
 	cfg.ReadHeaderTimeout, err = parseDurationEnv("HTTP_READ_HEADER_TIMEOUT", 5*time.Second)
 	if err != nil {
 		return nil, err
@@ -61,6 +75,15 @@ func Load() (*Config, error) {
 	}
 
 	return cfg, nil
+}
+
+// httpAddr resolves the listen address. Render (and similar PaaS) inject the
+// public port via $PORT; prefer it, then HTTP_ADDR, then the local default.
+func httpAddr() string {
+	if port := os.Getenv("PORT"); port != "" {
+		return ":" + port
+	}
+	return getEnv("HTTP_ADDR", ":8080")
 }
 
 func getEnv(key, fallback string) string {

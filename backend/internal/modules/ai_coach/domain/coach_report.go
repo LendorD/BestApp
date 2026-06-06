@@ -3,7 +3,7 @@ package domain
 import (
 	"time"
 
-	analyticsdomain "gamementor/internal/modules/analytics/domain"
+	analyticsdomain "gamementor/internal/modules/statistics/domain"
 )
 
 type CoachReport struct {
