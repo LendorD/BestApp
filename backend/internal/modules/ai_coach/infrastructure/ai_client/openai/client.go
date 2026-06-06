@@ -25,12 +25,14 @@ const systemPrompt = "You are GameMentor AI Coach, an expert Dota 2 analyst. " +
 type Client struct {
 	provider   string
 	apiKey     string
-	model      string
+	models     []string // tried in order; first success wins
 	baseURL    string
 	httpClient *http.Client
 }
 
 // New builds a client. baseURL may be empty: it is then derived from provider.
+// model may be a comma-separated list of model IDs — they are tried in order
+// (handy for free models that come and go: deepseek...:free,llama...:free,...).
 func New(provider, apiKey, model, baseURL string, timeout time.Duration) *Client {
 	if timeout <= 0 {
 		timeout = 60 * time.Second
@@ -45,10 +47,16 @@ func New(provider, apiKey, model, baseURL string, timeout time.Duration) *Client
 			baseURL = "http://localhost:11434/v1"
 		}
 	}
+	var models []string
+	for _, m := range strings.Split(model, ",") {
+		if t := strings.TrimSpace(m); t != "" {
+			models = append(models, t)
+		}
+	}
 	return &Client{
 		provider:   provider,
 		apiKey:     apiKey,
-		model:      model,
+		models:     models,
 		baseURL:    strings.TrimRight(baseURL, "/"),
 		httpClient: &http.Client{Timeout: timeout},
 	}
@@ -58,7 +66,7 @@ func New(provider, apiKey, model, baseURL string, timeout time.Duration) *Client
 func (c *Client) Enabled() bool {
 	// Ollama can run without an API key; everything else needs one.
 	keyOK := c.apiKey != "" || strings.ToLower(c.provider) == "ollama"
-	return keyOK && c.model != "" && c.baseURL != ""
+	return keyOK && len(c.models) > 0 && c.baseURL != ""
 }
 
 type chatMessage struct {
@@ -84,17 +92,32 @@ type chatResponse struct {
 	} `json:"error,omitempty"`
 }
 
-// GenerateCoachReport implements aicoachapp.AIClient.
+// GenerateCoachReport implements aicoachapp.AIClient. It tries each configured
+// model in order and returns the first that succeeds; if all fail, the error
+// lists what each model returned (so you can see how they behave).
 func (c *Client) GenerateCoachReport(ctx context.Context, request aicoachapp.AIRequest) (*coachdomain.ReportContent, error) {
 	if !c.Enabled() {
 		return nil, coachdomain.ProviderDisabled(c.provider)
 	}
 
-	model := c.model
+	models := c.models
 	if request.Model != "" {
-		model = request.Model
+		models = []string{request.Model}
 	}
 
+	var attempts []string
+	for _, model := range models {
+		report, err := c.callModel(ctx, model, request.Prompt)
+		if err == nil {
+			return report, nil
+		}
+		attempts = append(attempts, model+" -> "+err.Error())
+	}
+	return nil, domain.ExternalError("all AI models failed: " + strings.Join(attempts, " | "))
+}
+
+// callModel runs one chat completion against a single model.
+func (c *Client) callModel(ctx context.Context, model, prompt string) (*coachdomain.ReportContent, error) {
 	// NOTE: we intentionally do NOT set response_format/json_object — many free
 	// OpenRouter models don't support JSON mode and reject the request. The
 	// system prompt asks for strict JSON and extractJSON() pulls it from text.
@@ -102,18 +125,18 @@ func (c *Client) GenerateCoachReport(ctx context.Context, request aicoachapp.AIR
 		Model: model,
 		Messages: []chatMessage{
 			{Role: "system", Content: systemPrompt},
-			{Role: "user", Content: request.Prompt},
+			{Role: "user", Content: prompt},
 		},
 		Temperature: 0.4,
 	}
 	raw, err := json.Marshal(body)
 	if err != nil {
-		return nil, fmt.Errorf("marshal ai request: %w", err)
+		return nil, fmt.Errorf("marshal request: %w", err)
 	}
 
 	req, err := http.NewRequestWithContext(ctx, http.MethodPost, c.baseURL+"/chat/completions", bytes.NewReader(raw))
 	if err != nil {
-		return nil, fmt.Errorf("build ai request: %w", err)
+		return nil, fmt.Errorf("build request: %w", err)
 	}
 	req.Header.Set("Content-Type", "application/json")
 	if c.apiKey != "" {
@@ -125,33 +148,33 @@ func (c *Client) GenerateCoachReport(ctx context.Context, request aicoachapp.AIR
 
 	resp, err := c.httpClient.Do(req)
 	if err != nil {
-		return nil, domain.ExternalError("AI request failed: " + err.Error())
+		return nil, fmt.Errorf("request failed: %w", err)
 	}
 	defer resp.Body.Close()
 
 	payload, err := io.ReadAll(io.LimitReader(resp.Body, 8<<20))
 	if err != nil {
-		return nil, domain.ExternalError("read AI response: " + err.Error())
+		return nil, fmt.Errorf("read response: %w", err)
 	}
 	if resp.StatusCode < 200 || resp.StatusCode >= 300 {
-		return nil, domain.ExternalError(fmt.Sprintf("AI provider status %d (model %s): %s", resp.StatusCode, model, truncate(string(payload), 400)))
+		return nil, fmt.Errorf("status %d: %s", resp.StatusCode, truncate(string(payload), 300))
 	}
 
 	var parsed chatResponse
 	if err := json.Unmarshal(payload, &parsed); err != nil {
-		return nil, domain.ExternalError("decode AI response: " + err.Error())
+		return nil, fmt.Errorf("decode response: %w", err)
 	}
 	if parsed.Error != nil && parsed.Error.Message != "" {
-		return nil, domain.ExternalError("AI provider error: " + parsed.Error.Message)
+		return nil, fmt.Errorf("provider error: %s", parsed.Error.Message)
 	}
 	if len(parsed.Choices) == 0 {
-		return nil, domain.ExternalError("AI provider returned no choices (model " + model + ")")
+		return nil, fmt.Errorf("no choices")
 	}
 
 	content := extractJSON(parsed.Choices[0].Message.Content)
 	var report coachdomain.ReportContent
 	if err := json.Unmarshal([]byte(content), &report); err != nil {
-		return nil, domain.ExternalError("AI output is not valid JSON: " + truncate(content, 200))
+		return nil, fmt.Errorf("output not valid JSON: %s", truncate(content, 160))
 	}
 	return &report, nil
 }
