@@ -12,6 +12,7 @@ import (
 	"strings"
 	"time"
 
+	"gamementor/internal/domain"
 	aicoachapp "gamementor/internal/modules/ai_coach/application"
 	coachdomain "gamementor/internal/modules/ai_coach/domain"
 )
@@ -94,14 +95,16 @@ func (c *Client) GenerateCoachReport(ctx context.Context, request aicoachapp.AIR
 		model = request.Model
 	}
 
+	// NOTE: we intentionally do NOT set response_format/json_object — many free
+	// OpenRouter models don't support JSON mode and reject the request. The
+	// system prompt asks for strict JSON and extractJSON() pulls it from text.
 	body := chatRequest{
 		Model: model,
 		Messages: []chatMessage{
 			{Role: "system", Content: systemPrompt},
 			{Role: "user", Content: request.Prompt},
 		},
-		Temperature:    0.4,
-		ResponseFormat: map[string]any{"type": "json_object"},
+		Temperature: 0.4,
 	}
 	raw, err := json.Marshal(body)
 	if err != nil {
@@ -122,33 +125,33 @@ func (c *Client) GenerateCoachReport(ctx context.Context, request aicoachapp.AIR
 
 	resp, err := c.httpClient.Do(req)
 	if err != nil {
-		return nil, fmt.Errorf("ai request failed: %w", err)
+		return nil, domain.ExternalError("AI request failed: " + err.Error())
 	}
 	defer resp.Body.Close()
 
 	payload, err := io.ReadAll(io.LimitReader(resp.Body, 8<<20))
 	if err != nil {
-		return nil, fmt.Errorf("read ai response: %w", err)
+		return nil, domain.ExternalError("read AI response: " + err.Error())
 	}
 	if resp.StatusCode < 200 || resp.StatusCode >= 300 {
-		return nil, fmt.Errorf("ai provider returned status %d: %s", resp.StatusCode, truncate(string(payload), 300))
+		return nil, domain.ExternalError(fmt.Sprintf("AI provider status %d (model %s): %s", resp.StatusCode, model, truncate(string(payload), 400)))
 	}
 
 	var parsed chatResponse
 	if err := json.Unmarshal(payload, &parsed); err != nil {
-		return nil, fmt.Errorf("decode ai response: %w", err)
+		return nil, domain.ExternalError("decode AI response: " + err.Error())
 	}
 	if parsed.Error != nil && parsed.Error.Message != "" {
-		return nil, fmt.Errorf("ai provider error: %s", parsed.Error.Message)
+		return nil, domain.ExternalError("AI provider error: " + parsed.Error.Message)
 	}
 	if len(parsed.Choices) == 0 {
-		return nil, fmt.Errorf("ai provider returned no choices")
+		return nil, domain.ExternalError("AI provider returned no choices (model " + model + ")")
 	}
 
 	content := extractJSON(parsed.Choices[0].Message.Content)
 	var report coachdomain.ReportContent
 	if err := json.Unmarshal([]byte(content), &report); err != nil {
-		return nil, fmt.Errorf("ai output is not valid JSON: %w", err)
+		return nil, domain.ExternalError("AI output is not valid JSON: " + truncate(content, 200))
 	}
 	return &report, nil
 }
