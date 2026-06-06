@@ -56,7 +56,7 @@ export function mapDashboard(api: any): PlayerData | null {
     ],
     trend: trend.length ? trend : [],
     radar: (perf.breakdown || []).map((b: any) => ({ axis: b.label, value: clamp(Math.round(b.score)) })),
-    matches: (api.matches || []).slice(0, 8).map((m: any) => ({
+    matches: (api.matches || []).slice(0, 15).map((m: any) => ({
       heroId: m.hero_id, hero: heroName(m.hero_id), result: m.won ? "W" : "L",
       kda: `${m.kills}/${m.deaths}/${m.assists}`, gpm: m.gold_per_min, dur: dur(m.duration_seconds),
       impact: ((m.kills + m.assists * 0.5) / Math.max(m.deaths, 1)).toFixed(1),

@@ -1,5 +1,7 @@
+import { useState } from "react";
 import { Clock, TrendingUp, TrendingDown } from "lucide-react";
 import { usePlayer } from "../../lib/store";
+import { heroPortrait } from "../../lib/heroes";
 
 const PALETTE = ["#4FC3F7", "#A78BFA", "#EF4444", "#38BDF8", "#86EFAC", "#F97316", "#D4AF37", "#10B981"];
 
@@ -12,7 +14,17 @@ const DEMO = [
   { hero: "Ember Spirit", result: "W", kills: 11, deaths: 2, assists: 13, gpm: 598, duration: "35:47", kda: 12.0, ago: "1d" },
 ];
 
-function HeroAvatar({ name, color }: { name: string; color: string }) {
+function HeroAvatar({ heroId, name, color }: { heroId?: number; name: string; color: string }) {
+  const [broken, setBroken] = useState(false);
+  const img = heroId ? heroPortrait(heroId) : "";
+  if (img && !broken) {
+    return (
+      <div className="w-8 h-6 rounded-md overflow-hidden shrink-0" style={{ border: `1px solid ${color}44` }}>
+        <img src={img} alt={name} loading="lazy" onError={() => setBroken(true)}
+          style={{ width: "100%", height: "100%", objectFit: "cover", display: "block" }} />
+      </div>
+    );
+  }
   const initials = name.split(" ").map((w) => w[0]).join("").slice(0, 2);
   return (
     <div className="w-7 h-7 rounded-lg flex items-center justify-center shrink-0"
@@ -28,7 +40,7 @@ export function RecentMatches() {
     ? data.matches.map((m: any, i: number) => {
         const parts = String(m.kda).split("/").map((x: string) => parseInt(x, 10) || 0);
         return {
-          hero: m.hero, color: PALETTE[i % PALETTE.length], result: m.result,
+          heroId: m.heroId, hero: m.hero, color: PALETTE[i % PALETTE.length], result: m.result,
           kills: parts[0] || 0, deaths: parts[1] || 0, assists: parts[2] || 0,
           gpm: m.gpm, duration: m.dur, kda: Number(m.impact) || 0, ago: "",
         };
@@ -55,7 +67,7 @@ export function RecentMatches() {
               <tr key={i} style={{ borderBottom: "1px solid #1B2430" }} className="hover:bg-[#111620]">
                 <td style={{ padding: "10px 12px" }}>
                   <div className="flex items-center gap-2">
-                    <HeroAvatar name={m.hero} color={m.color} />
+                    <HeroAvatar heroId={m.heroId} name={m.hero} color={m.color} />
                     <span style={{ fontFamily: "Manrope, sans-serif", fontSize: 12, fontWeight: 600, color: "#F4F6FA" }}>{m.hero}</span>
                   </div>
                 </td>

@@ -18,10 +18,8 @@ export default function Overview() {
           <PerformanceTrend />
         </div>
       </div>
-      <div className="grid gap-4 grid-cols-1 lg:grid-cols-2">
-        <HexRadar />
-        <AiCoach />
-      </div>
+      <HexRadar />
+      <AiCoach />
       <RecentMatches />
       <ProComparison />
     </>

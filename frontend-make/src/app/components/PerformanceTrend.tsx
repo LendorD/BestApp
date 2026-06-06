@@ -37,7 +37,7 @@ export function PerformanceTrend() {
           <div className="flex items-center gap-1.5"><div className="w-3 h-0.5 rounded" style={{ background: "#3B82F6" }} /><span style={{ fontFamily: "Manrope, sans-serif", fontSize: 11, color: "#8A94A6" }}>KDA × 10</span></div>
         </div>
       </div>
-      <ResponsiveContainer width="100%" height={180}>
+      <ResponsiveContainer width="100%" height={260}>
         <LineChart data={chartData} margin={{ top: 4, right: 4, left: -20, bottom: 0 }}>
           <CartesianGrid stroke="#1B2430" strokeDasharray="3 3" vertical={false} />
           <XAxis dataKey="date" tick={{ fontFamily: "JetBrains Mono, monospace", fontSize: 9, fill: "#8A94A6" }} axisLine={false} tickLine={false} />
