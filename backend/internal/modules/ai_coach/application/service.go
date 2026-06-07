@@ -61,7 +61,7 @@ func NewService(analytics AnalyticsProvider, aiClient AIClient, repo coachdomain
 	return service
 }
 
-func (s *Service) ReviewDotaPlayer(ctx context.Context, steamID string) (*coachdomain.CoachReport, error) {
+func (s *Service) ReviewDotaPlayer(ctx context.Context, steamID string, focus string) (*coachdomain.CoachReport, error) {
 	steamID = strings.TrimSpace(steamID)
 	if steamID == "" {
 		return nil, coachdomain.InvalidInput("steam_id is required")
@@ -74,6 +74,11 @@ func (s *Service) ReviewDotaPlayer(ctx context.Context, steamID string) (*coachd
 	prompt, err := BuildDotaReviewPrompt(snapshot)
 	if err != nil {
 		return nil, err
+	}
+
+	// Tailor the plan to the player's stated goals (from the coach survey).
+	if focus = strings.TrimSpace(focus); focus != "" {
+		prompt = prompt + "\n\nPLAYER GOALS / FOCUS (tailor the whole plan to this, prioritise it):\n" + focus
 	}
 
 	// Append optional extra context (OpenDota aggregates, Stratz).

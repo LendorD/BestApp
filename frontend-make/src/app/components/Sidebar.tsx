@@ -1,7 +1,7 @@
 import { NavLink, useNavigate } from "react-router";
 import {
   BarChart2, Zap, Trophy, Settings, Gamepad2, Target,
-  TrendingUp, BookOpen, Crown, Bomb, Dumbbell, LogIn, Database,
+  TrendingUp, BookOpen, Crown, Bomb, Dumbbell, LogIn, Database, Sparkles,
 } from "lucide-react";
 import { useAuth } from "../../lib/auth";
 
@@ -9,6 +9,7 @@ const DOTA_NAV = [
   { icon: BarChart2, label: "Overview", to: "/overview" },
   { icon: TrendingUp, label: "Performance", to: "/performance" },
   { icon: Target, label: "Heroes", to: "/heroes" },
+  { icon: Sparkles, label: "AI Coach", to: "/coach" },
   { icon: Trophy, label: "Rankings", to: "/rankings" },
   { icon: BookOpen, label: "Replays", to: "/replays" },
   { icon: Database, label: "Data Explorer", to: "/explorer" },

@@ -14,6 +14,7 @@ import Subscription from "./pages/Subscription";
 import Explorer from "./pages/Explorer";
 import ApiProbe from "./pages/ApiProbe";
 import Landing from "./pages/Landing";
+import Coach from "./pages/Coach";
 
 export default function App() {
   const loc = useLocation();
@@ -46,6 +47,7 @@ export default function App() {
               <Route path="/replays" element={<Replays />} />
               <Route path="/cs2/grenades" element={<Grenades />} />
               <Route path="/cs2/training" element={<Training />} />
+              <Route path="/coach" element={<Coach />} />
               <Route path="/explorer" element={<Explorer />} />
               <Route path="/api-test" element={<ApiProbe />} />
               <Route path="/profile" element={<Profile />} />

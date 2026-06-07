@@ -92,6 +92,7 @@ export const dota = {
   refresh: (steamId: string, params: Record<string, any> = {}) => request(`/dota/lab/players/${steamId}/refresh${qs(params)}`, { method: "POST" }),
   explore: (steamId: string) => request(`/dota/explorer/${steamId}`),
   metrics: (steamId: string, params: Record<string, any> = {}) => request(`/dota/metrics/${steamId}${qs(params)}`),
+  rawMatches: (steamId: string, limit = 15) => request(`/dota/raw/${steamId}/matches?limit=${limit}`),
 };
 
 export const identity = {
@@ -99,7 +100,7 @@ export const identity = {
 };
 
 export const aiCoach = {
-  review: (steamId: string) => request(`/ai-coach/dota/player/${steamId}/review`, { method: "POST" }),
+  review: (steamId: string, focus = "") => request(`/ai-coach/dota/player/${steamId}/review`, { method: "POST", body: JSON.stringify({ focus }) }),
   latest: (steamId: string) => request(`/ai-coach/dota/player/${steamId}/latest`),
   reviewMatch: (matchId: string, steamId = "") => request(`/ai-coach/dota/match/${matchId}/review${steamId ? "?steam_id=" + encodeURIComponent(steamId) : ""}`, { method: "POST" }),
   getReport: (reportId: string) => request(`/ai-coach/reports/${reportId}`),

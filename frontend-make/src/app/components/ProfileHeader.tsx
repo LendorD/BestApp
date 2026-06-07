@@ -12,8 +12,6 @@ function rankFromTier(tier?: number): string {
   if (!name) return "";
   return medal >= 8 ? name : name + (stars ? " " + stars : "");
 }
-
-// Rank medal accent by Dota tier (first digit of rank_tier / label keyword).
 function rankColor(label: string) {
   const l = (label || "").toLowerCase();
   if (l.includes("immortal")) return "#67E8F9";
@@ -41,40 +39,36 @@ function Avatar({ url, name }: { url: string; name: string }) {
 }
 
 export function ProfileHeader() {
-  const { data, live, accountId: accId } = usePlayer();
-  const p = data?.player;
-  const [extra, setExtra] = useState<{ avatar?: string; rank?: string }>({});
+  const { accountId } = usePlayer();
+  const [prof, setProf] = useState<any>(null);
+  const [report, setReport] = useState<any>(null);
 
-  // Fetch the player profile for avatar + rank medal (the dashboard payload
-  // doesn't always include them).
+  // Source profile + metrics directly (independent of the dashboard mapping).
   useEffect(() => {
-    if (!accId) { setExtra({}); return; }
+    if (!accountId) { setProf(null); setReport(null); return; }
     let cancelled = false;
-    dota.profile(accId)
-      .then((r: any) => {
-        if (cancelled) return;
-        setExtra({
-          avatar: r?.avatar_full || r?.avatarfull || r?.avatar || "",
-          rank: r?.rank_label || rankFromTier(r?.rank_tier),
-        });
-      })
-      .catch(() => {});
+    dota.profile(accountId).then((r: any) => { if (!cancelled) setProf(r); }).catch(() => {});
+    dota.metrics(accountId, { limit: 50 }).then((r: any) => { if (!cancelled) setReport(r); }).catch(() => {});
     return () => { cancelled = true; };
-  }, [accId]);
+  }, [accountId]);
 
-  const name = p?.name || "Найди игрока";
-  const accountId = p?.accountId || accId || "—";
-  const avatar = p?.avatar || extra.avatar || "";
-  const rankLabel = (p?.rank && p.rank !== "—" ? p.rank : extra.rank) || (data ? "Без ранга" : "Immortal");
-  const matches = p?.matches ?? 0;
-  const kpi = (l: string) => data?.kpis?.find((k) => k.label === l)?.value;
+  const live = !!accountId;
+  const name = prof?.persona_name || prof?.personaname || (accountId ? "Player " + accountId : "Найди игрока");
+  const avatar = prof?.avatar_full || prof?.avatarfull || prof?.avatar || "";
+  const rankLabel = prof?.rank_label || rankFromTier(prof?.rank_tier) || (live ? "Без ранга" : "Immortal");
   const rc = rankColor(rankLabel);
 
+  const metric = (k: string) => report?.metrics?.find((m: any) => m.key === k)?.value;
+  const gmScore = report?.scores?.overall;
+  const winrate = report?.winrate_pct;
+  const kda = metric("kda");
+  const games = report?.games;
+
   const tiles = [
-    { label: "GM Score", value: data ? String(data.score?.value ?? "—") : "74" },
-    { label: "Winrate", value: data ? (kpi("Винрейт") || "—") : "63%" },
-    { label: "KDA", value: data ? (kpi("KDA") || "—") : "4.2" },
-    { label: "Матчей", value: data ? String(matches) : "—" },
+    { label: "GM Score", value: gmScore != null ? String(gmScore) : (live ? "…" : "74") },
+    { label: "Winrate", value: winrate != null ? Math.round(winrate) + "%" : (live ? "…" : "63%") },
+    { label: "KDA", value: kda != null ? String(kda) : (live ? "…" : "4.2") },
+    { label: "Матчей", value: games != null ? String(games) : (live ? "…" : "—") },
   ];
 
   return (
@@ -83,7 +77,6 @@ export function ProfileHeader() {
       <div className="absolute inset-0 pointer-events-none"
         style={{ background: `radial-gradient(ellipse 420px 220px at 85% 50%, ${rc}14 0%, transparent 70%)` }} />
 
-      {/* Avatar + rank medal */}
       <div className="relative shrink-0">
         <div className="w-20 h-20 rounded-2xl overflow-hidden" style={{ border: `2px solid ${rc}55` }}>
           <Avatar url={avatar} name={name} />
@@ -94,20 +87,19 @@ export function ProfileHeader() {
         </div>
       </div>
 
-      {/* Identity */}
       <div className="flex-1 min-w-0 relative z-10">
         <div className="flex items-center gap-2 mb-1">
           <span style={{ fontFamily: "Manrope, sans-serif", fontWeight: 800, fontSize: 22, color: "#F4F6FA", letterSpacing: "-0.4px", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis", maxWidth: 320 }}>{name}</span>
           <span className="px-2 py-0.5 rounded-full" style={{ fontFamily: "JetBrains Mono, monospace", fontSize: 10, fontWeight: 700, letterSpacing: "0.06em", color: live ? "#00D084" : "#8A94A6", background: live ? "rgba(0,208,132,0.12)" : "rgba(138,148,166,0.1)", border: `1px solid ${live ? "rgba(0,208,132,0.3)" : "#1B2430"}` }}>{live ? "LIVE" : "DEMO"}</span>
-          {accountId !== "—" ? (
+          {accountId ? (
             <a href={`https://www.opendota.com/players/${accountId}`} target="_blank" rel="noreferrer" style={{ color: "#8A94A6", display: "inline-flex" }} title="Открыть на OpenDota"><ExternalLink size={14} /></a>
           ) : null}
         </div>
         <div className="flex items-center gap-2 mb-4">
           <Shield size={12} color="#8A94A6" />
-          <span style={{ fontFamily: "JetBrains Mono, monospace", fontSize: 11, color: "#8A94A6" }}>ID {accountId}</span>
+          <span style={{ fontFamily: "JetBrains Mono, monospace", fontSize: 11, color: "#8A94A6" }}>ID {accountId || "—"}</span>
           <span style={{ color: "#1B2430" }}>·</span>
-          <span style={{ fontFamily: "JetBrains Mono, monospace", fontSize: 11, color: "#8A94A6" }}>{matches} матчей в анализе</span>
+          <span style={{ fontFamily: "JetBrains Mono, monospace", fontSize: 11, color: "#8A94A6" }}>{games != null ? games + " матчей в анализе" : "—"}</span>
         </div>
 
         <div className="flex items-center gap-6 flex-wrap">
@@ -120,7 +112,6 @@ export function ProfileHeader() {
         </div>
       </div>
 
-      {/* Rank card */}
       <div className="shrink-0 flex flex-col items-center gap-2 px-5 py-4 rounded-2xl relative z-10"
         style={{ background: "#10141B", border: "1px solid #1B2430" }}>
         <div style={{ fontFamily: "Manrope, sans-serif", fontSize: 10, color: "#8A94A6", letterSpacing: "0.08em" }}>РАНГ</div>

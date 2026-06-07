@@ -20,7 +20,12 @@ func NewHandler(service *aicoachapp.Service) *Handler {
 }
 
 func (h *Handler) ReviewDotaPlayer(c *gin.Context) {
-	report, err := h.service.ReviewDotaPlayer(c.Request.Context(), c.Param("steam_id"))
+	// Optional body: { "focus": "..." } from the coach survey.
+	var body struct {
+		Focus string `json:"focus"`
+	}
+	_ = c.ShouldBindJSON(&body)
+	report, err := h.service.ReviewDotaPlayer(c.Request.Context(), c.Param("steam_id"), body.Focus)
 	if err != nil {
 		writeError(c, err)
 		return

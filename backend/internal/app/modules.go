@@ -183,7 +183,7 @@ func registerJobHandlers(
 	})
 	jobs.Register(jobsdomain.JobTypeGenerateAICoachReport, func(ctx context.Context, payload jobsdomain.JobPayload) (map[string]any, error) {
 		steamID := payload.String("steam_id")
-		report, err := aiCoach.ReviewDotaPlayer(ctx, steamID)
+		report, err := aiCoach.ReviewDotaPlayer(ctx, steamID, "")
 		if err != nil {
 			return nil, err
 		}
