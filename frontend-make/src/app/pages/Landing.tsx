@@ -1,7 +1,11 @@
+import { useRef } from "react";
 import { useNavigate } from "react-router";
 import { ArrowRight, LogIn, Gamepad2 } from "lucide-react";
 import { usePlayer } from "../../lib/store";
 import { useAuth } from "../../lib/auth";
+
+// CTA words inside the landing that should funnel the user into the app.
+const CTA_RE = /разобр|профил|анализ|начать|начни|попроб|дашборд|старт|войти|регистр|получить|узнать|оценить|try|get started|analyze|sign in|start/i;
 
 // The marketing landing is a self-contained design served as a static file
 // (frontend-make/public/landing.html). We render it in a full-screen iframe and
@@ -12,8 +16,34 @@ export default function Landing() {
   const { data } = usePlayer();
   const { user } = useAuth();
 
+  const iframeRef = useRef<HTMLIFrameElement>(null);
   const base = (import.meta as any).env?.BASE_URL || "/";
   const landingUrl = base.replace(/\/$/, "") + "/landing.html";
+
+  // The landing is a static design; its buttons aren't wired to our backend.
+  // Intercept CTA clicks inside the (same-origin) iframe and route into the app.
+  const onIframeLoad = () => {
+    try {
+      const doc = iframeRef.current?.contentDocument;
+      if (!doc) return;
+      doc.addEventListener(
+        "click",
+        (ev: any) => {
+          const el = ev.target?.closest?.("a,button,[role=button]");
+          if (!el) return;
+          const txt = (el.textContent || "").trim().toLowerCase();
+          if (CTA_RE.test(txt)) {
+            ev.preventDefault();
+            ev.stopPropagation();
+            nav(/войти|sign in|регистр/.test(txt) ? "/login" : "/overview");
+          }
+        },
+        true
+      );
+    } catch {
+      /* cross-origin or not ready — ignore */
+    }
+  };
 
   const gmScore = data?.score?.value;
   const winrate = data?.kpis?.find((k: any) => /винрейт|winrate/i.test(k.label))?.value;
@@ -21,8 +51,10 @@ export default function Landing() {
   return (
     <div style={{ position: "fixed", inset: 0, background: "#050608" }}>
       <iframe
+        ref={iframeRef}
         src={landingUrl}
         title="GameMentor"
+        onLoad={onIframeLoad}
         style={{ position: "absolute", inset: 0, width: "100%", height: "100%", border: "none", display: "block" }}
       />
 

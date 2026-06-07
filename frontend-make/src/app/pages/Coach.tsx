@@ -32,6 +32,9 @@ function itemText(hero: boolean | undefined, raw: string) {
 
 export default function Coach() {
   const { accountId } = usePlayer();
+  let stored = "";
+  try { stored = localStorage.getItem("gm.dotaId") || ""; } catch { /* ignore */ }
+  const acc = accountId || stored;
   const nav = useNavigate();
   const [answers, setAnswers] = useState<Record<string, string>>({});
   const [customOpen, setCustomOpen] = useState<Record<string, boolean>>({});
@@ -48,10 +51,10 @@ export default function Coach() {
   };
 
   const run = async () => {
-    if (!accountId) return;
+    if (!acc) return;
     setLoading(true); setErr(""); setReport(null);
     try {
-      setReport(await aiCoach.review(accountId, buildFocus()));
+      setReport(await aiCoach.review(acc, buildFocus()));
     } catch (e: any) {
       setErr(/disabled|provider/i.test(e?.message || "") ? "AI выключен на сервере (нет ключа модели)." : (e?.message || "Не удалось получить план"));
     } finally {

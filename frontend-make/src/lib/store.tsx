@@ -63,13 +63,16 @@ export function PlayerProvider({ children }: { children: ReactNode }) {
     if (user?.dota_account_id) loadById(String(user.dota_account_id), true);
   }
 
-  // Auto-load the logged-in user's own account when they have one linked,
-  // as long as they are not currently viewing someone else from a search.
-  const linkedId = user?.dota_account_id ? String(user.dota_account_id) : "";
+  // Auto-load the player on mount: prefer the logged-in user's linked account,
+  // otherwise fall back to the last searched id (persisted in localStorage) so
+  // the whole app (KPI, AI coach, etc.) has an account id after a reload.
+  let stored = "";
+  try { stored = localStorage.getItem("gm.dotaId") || ""; } catch { /* ignore */ }
+  const linkedId = user?.dota_account_id ? String(user.dota_account_id) : stored;
   useEffect(() => {
     if (manualRef.current) return;
     if (linkedId && linkedId !== state.accountId) {
-      loadById(linkedId, true);
+      loadById(linkedId, !!user?.dota_account_id && String(user.dota_account_id) === linkedId);
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [linkedId]);
