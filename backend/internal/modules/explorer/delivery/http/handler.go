@@ -1,6 +1,9 @@
 package http
 
 import (
+	"encoding/json"
+	"strconv"
+
 	"gamementor/internal/delivery/http/response"
 	explorerapp "gamementor/internal/modules/explorer/application"
 
@@ -17,6 +20,18 @@ func NewHandler(service *explorerapp.Service) *Handler {
 
 func RegisterRoutes(group *gin.RouterGroup, handler *Handler) {
 	group.GET("/dota/explorer/:steam_id", handler.Explore)
+	// Raw OpenDota passthrough for the API-test page (choose stats responsibly).
+	group.GET("/dota/raw/:steam_id/:resource", handler.Raw)
+}
+
+func (h *Handler) Raw(c *gin.Context) {
+	limit, _ := strconv.Atoi(c.Query("limit"))
+	raw, err := h.service.Raw(c.Request.Context(), c.Param("steam_id"), c.Param("resource"), limit)
+	if err != nil {
+		response.Error(c, err)
+		return
+	}
+	response.OK(c, json.RawMessage(raw))
 }
 
 func (h *Handler) Explore(c *gin.Context) {

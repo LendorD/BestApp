@@ -12,6 +12,19 @@ const ENDPOINTS: EP[] = [
   { id: "metrics30", label: "Metrics · 30 дней", method: "GET", group: "Агрегаты", path: (a) => `/dota/metrics/${a}?days=30&limit=80` },
   { id: "metricsAll", label: "Metrics · всё (200 игр)", method: "GET", group: "Агрегаты", path: (a) => `/dota/metrics/${a}?limit=200` },
 
+  // --- OpenDota RAW (вся история игрока для выбора метрик) ---
+  { id: "rawMatches", label: "RAW · matches (500 игр, проекции)", method: "GET", group: "OpenDota RAW", path: (a) => `/dota/raw/${a}/matches?limit=500` },
+  { id: "rawTotals", label: "RAW · totals (средние за всё время)", method: "GET", group: "OpenDota RAW", path: (a) => `/dota/raw/${a}/totals` },
+  { id: "rawHeroes", label: "RAW · heroes (винрейт по героям)", method: "GET", group: "OpenDota RAW", path: (a) => `/dota/raw/${a}/heroes` },
+  { id: "rawCounts", label: "RAW · counts (лайны/режимы)", method: "GET", group: "OpenDota RAW", path: (a) => `/dota/raw/${a}/counts` },
+  { id: "rawWl", label: "RAW · win/loss", method: "GET", group: "OpenDota RAW", path: (a) => `/dota/raw/${a}/wl` },
+  { id: "rawRatings", label: "RAW · ratings (MMR/ранг по времени)", method: "GET", group: "OpenDota RAW", path: (a) => `/dota/raw/${a}/ratings` },
+  { id: "rawRankings", label: "RAW · rankings (перцентиль по героям)", method: "GET", group: "OpenDota RAW", path: (a) => `/dota/raw/${a}/rankings` },
+  { id: "rawPeers", label: "RAW · peers (с кем играет)", method: "GET", group: "OpenDota RAW", path: (a) => `/dota/raw/${a}/peers` },
+  { id: "rawWardmap", label: "RAW · wardmap (вижн)", method: "GET", group: "OpenDota RAW", path: (a) => `/dota/raw/${a}/wardmap` },
+  { id: "rawHistKills", label: "RAW · histogram kills", method: "GET", group: "OpenDota RAW", path: (a) => `/dota/raw/${a}/histograms-kills` },
+  { id: "rawHistGpm", label: "RAW · histogram GPM", method: "GET", group: "OpenDota RAW", path: (a) => `/dota/raw/${a}/histograms-gpm` },
+
   // --- Dota player (сырые данные OpenDota) ---
   { id: "pProfile", label: "Player · profile", method: "GET", group: "Dota player", path: (a) => `/dota/player/${a}/profile` },
   { id: "pMatches", label: "Player · matches", method: "GET", group: "Dota player", path: (a) => `/dota/player/${a}/matches` },
@@ -40,7 +53,7 @@ const ENDPOINTS: EP[] = [
   { id: "resolve", label: "Identity · resolve (POST)", method: "POST", group: "Прочее", path: () => `/identity/dota/resolve`, body: (a) => ({ input: a }) },
 ];
 
-const GROUPS = ["Агрегаты", "Dota player", "Lab (statistics)", "AI Coach", "Прочее"];
+const GROUPS = ["Агрегаты", "OpenDota RAW", "Dota player", "Lab (statistics)", "AI Coach", "Прочее"];
 
 function statusColor(s: number) {
   if (s >= 200 && s < 300) return C.green;

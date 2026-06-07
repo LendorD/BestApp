@@ -5,7 +5,7 @@ const fmtK = (n: number) => (n >= 1000 ? (n / 1000).toFixed(1) + "k" : String(Ma
 
 export interface PlayerData {
   live: boolean;
-  player: { name: string; accountId: string; region: string; rank: string; peakMmr: string; mmr: string; hours: string };
+  player: { name: string; accountId: string; region: string; rank: string; peakMmr: string; mmr: string; hours: string; avatar: string; matches: number };
   score: { value: number; breakdown: { label: string; value: number }[] };
   kpis: { label: string; value: string; sub: string; delta: string; positive: boolean }[];
   trend: { date: string; winrate: number; kda: number }[];
@@ -38,6 +38,8 @@ export function mapDashboard(api: any): PlayerData | null {
       peakMmr: "—",
       mmr: "—",
       hours: String(s.matches || 0) + " matches",
+      avatar: p.avatar_full || p.avatarfull || p.avatar || p.avatarmedium || "",
+      matches: s.matches || 0,
     },
     score: {
       value: clamp(Math.round(perf.total ?? 0)),

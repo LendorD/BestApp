@@ -221,6 +221,45 @@ func (s *Service) openDota(ctx context.Context, accountID int64) OpenDotaData {
 	return out
 }
 
+// Raw proxies a single OpenDota resource so the API-test page can inspect the
+// full upstream response. Used to choose which stats to rely on for 200-500
+// game windows. Returns raw JSON bytes.
+func (s *Service) Raw(ctx context.Context, steamID, resource string, limit int) ([]byte, error) {
+	accountID, err := strconv.ParseInt(strings.TrimSpace(steamID), 10, 64)
+	if err != nil || accountID <= 0 {
+		return nil, domain.ValidationError("steam_id must be a numeric account id")
+	}
+	if limit <= 0 || limit > 1000 {
+		limit = 500
+	}
+	switch resource {
+	case "matches":
+		return s.od.GetMatchesProjected(ctx, accountID, 0, limit)
+	case "totals":
+		return s.od.GetTotals(ctx, accountID)
+	case "counts":
+		return s.od.GetCounts(ctx, accountID)
+	case "wl":
+		return s.od.GetWinLoss(ctx, accountID)
+	case "heroes":
+		return s.od.GetHeroesAgg(ctx, accountID)
+	case "peers":
+		return s.od.GetPeers(ctx, accountID)
+	case "ratings":
+		return s.od.GetRatings(ctx, accountID)
+	case "rankings":
+		return s.od.GetRankings(ctx, accountID)
+	case "wardmap":
+		return s.od.GetWardMap(ctx, accountID)
+	case "histograms-kills":
+		return s.od.GetHistogram(ctx, accountID, "kills")
+	case "histograms-gpm":
+		return s.od.GetHistogram(ctx, accountID, "gold_per_min")
+	default:
+		return nil, domain.ValidationError("unknown resource")
+	}
+}
+
 func (s *Service) stratzData(ctx context.Context, accountID int64) StratzData {
 	if s.stratz == nil || !s.stratz.Enabled() {
 		return StratzData{Enabled: false}

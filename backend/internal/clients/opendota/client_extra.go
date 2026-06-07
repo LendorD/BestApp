@@ -77,6 +77,27 @@ func (c *Client) GetBenchmarks(ctx context.Context, heroID int) ([]byte, error) 
 	return c.get(ctx, fmt.Sprintf("/api/benchmarks?hero_id=%d", heroID))
 }
 
+// GetRatings returns the player's rating/MMR history over time. Raw JSON.
+func (c *Client) GetRatings(ctx context.Context, accountID int64) ([]byte, error) {
+	return c.get(ctx, fmt.Sprintf("/api/players/%d/ratings", accountID))
+}
+
+// GetRankings returns per-hero percentile rankings vs other players. Raw JSON.
+func (c *Client) GetRankings(ctx context.Context, accountID int64) ([]byte, error) {
+	return c.get(ctx, fmt.Sprintf("/api/players/%d/rankings", accountID))
+}
+
+// GetWardMap returns observer/sentry placement heatmap data. Raw JSON.
+func (c *Client) GetWardMap(ctx context.Context, accountID int64) ([]byte, error) {
+	return c.get(ctx, fmt.Sprintf("/api/players/%d/wardmap", accountID))
+}
+
+// GetHistogram returns the distribution of a single field (e.g. kills,
+// gold_per_min) across the player's matches. Raw JSON.
+func (c *Client) GetHistogram(ctx context.Context, accountID int64, field string) ([]byte, error) {
+	return c.get(ctx, fmt.Sprintf("/api/players/%d/histograms/%s", accountID, field))
+}
+
 // encodeProjects keeps repeated project= params (url.Values.Encode also works,
 // but we keep ordering stable and avoid escaping the simple values).
 func encodeProjects(q url.Values) string {

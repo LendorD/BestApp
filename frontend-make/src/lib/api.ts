@@ -82,6 +82,7 @@ export const billing = {
 };
 
 export const dota = {
+  profile: (steamId: string) => request(`/dota/player/${steamId}/profile`),
   getDashboard: (steamId: string, params: Record<string, any> = {}) => request(`/dota/lab/players/${steamId}/dashboard${qs(params)}`),
   getProComparison: (steamId: string, params: Record<string, any> = {}) => request(`/dota/lab/players/${steamId}/pro-comparison${qs(params)}`),
   getHeroes: (steamId: string, params: Record<string, any> = {}) => request(`/dota/lab/players/${steamId}/heroes${qs(params)}`),
