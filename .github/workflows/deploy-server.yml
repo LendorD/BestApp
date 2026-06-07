@@ -1,0 +1,44 @@
+name: Deploy to VPS
+
+# Авто-деплой: при пуше в main заходит по SSH на сервер, тянет свежий код
+# и пересобирает docker compose. Секреты задаются в:
+# Settings -> Secrets and variables -> Actions -> New repository secret
+#   SERVER_HOST       = 31.77.129.61
+#   SERVER_USER       = root
+#   SSH_PRIVATE_KEY   = приватный ключ (целиком, включая BEGIN/END)
+#   SERVER_PORT       = 22            (необязательно)
+#   DEPLOY_PATH       = /opt/BestApp  (путь к проекту на сервере)
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+concurrency:
+  group: deploy-vps
+  cancel-in-progress: true
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Deploy over SSH
+        uses: appleboy/ssh-action@v1.2.0
+        with:
+          host: ${{ secrets.SERVER_HOST }}
+          username: ${{ secrets.SERVER_USER }}
+          key: ${{ secrets.SSH_PRIVATE_KEY }}
+          port: ${{ secrets.SERVER_PORT || 22 }}
+          command_timeout: "30m"
+          script: |
+            set -e
+            cd ${{ secrets.DEPLOY_PATH || '/opt/BestApp' }}
+            echo "==> Pulling latest code"
+            git fetch origin main
+            git reset --hard origin/main
+            echo "==> Building & restarting containers"
+            docker compose up -d --build
+            echo "==> Cleaning old images"
+            docker image prune -f
+            echo "==> Status"
+            docker compose ps
