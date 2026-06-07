@@ -6,12 +6,13 @@ import {
 import { useAuth } from "../../lib/auth";
 
 const DOTA_NAV = [
-  { icon: BarChart2, label: "Overview", to: "/" },
+  { icon: BarChart2, label: "Overview", to: "/overview" },
   { icon: TrendingUp, label: "Performance", to: "/performance" },
   { icon: Target, label: "Heroes", to: "/heroes" },
   { icon: Trophy, label: "Rankings", to: "/rankings" },
   { icon: BookOpen, label: "Replays", to: "/replays" },
   { icon: Database, label: "Data Explorer", to: "/explorer" },
+  { icon: Database, label: "API Тест", to: "/api-test" },
 ];
 
 const CS2_NAV = [
@@ -47,7 +48,7 @@ export function Sidebar({ game = "dota" }: { game?: "dota" | "cs2" }) {
       {/* Game switcher */}
       <div className="px-4 py-3 border-b" style={{ borderColor: "#1B2430" }}>
         <div className="flex rounded-md overflow-hidden" style={{ background: "#111620", border: "1px solid #1B2430" }}>
-          {([["dota", "DOTA 2", "/"], ["cs2", "CS2", "/cs2/grenades"]] as const).map(([g, lbl, to]) => (
+          {([["dota", "DOTA 2", "/overview"], ["cs2", "CS2", "/cs2/grenades"]] as const).map(([g, lbl, to]) => (
             <button key={g} onClick={() => nav(to)}
               className="flex-1 flex items-center justify-center gap-1.5 py-1.5 transition-all"
               style={{

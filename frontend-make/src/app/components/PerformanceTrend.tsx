@@ -29,7 +29,7 @@ export function PerformanceTrend() {
   const chartData = data?.trend && data.trend.length >= 2 ? data.trend : DEMO;
 
   return (
-    <div className="rounded-lg p-5" style={{ background: "#0B0E13", border: "1px solid #1B2430" }}>
+    <div className="rounded-2xl p-6" style={{ background: "#0B0E13", border: "1px solid #161C26" }}>
       <div className="flex items-center justify-between mb-4">
         <div style={{ fontFamily: "Manrope, sans-serif", fontWeight: 700, fontSize: 13, color: "#F4F6FA" }}>Performance Trend</div>
         <div className="flex items-center gap-4">

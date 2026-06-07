@@ -51,7 +51,7 @@ export function ScoreGauge() {
     .map((s, i) => ({ label: s.label, value: s.value, color: PALETTE[i % PALETTE.length] }));
 
   return (
-    <div className="rounded-lg p-5" style={{ background: "#0B0E13", border: "1px solid #1B2430" }}>
+    <div className="rounded-2xl p-6" style={{ background: "#0B0E13", border: "1px solid #161C26" }}>
       <div className="flex items-center gap-1.5 relative group" style={{ marginBottom: 16, width: "fit-content" }}>
         <span style={{ fontFamily: "Manrope, sans-serif", fontWeight: 700, fontSize: 13, color: "#F4F6FA" }}>GameMentor Score</span>
         <Info size={13} color="#8A94A6" style={{ cursor: "help" }} />

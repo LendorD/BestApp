@@ -13,7 +13,7 @@ export function HexRadar() {
     : DEMO;
 
   return (
-    <div className="rounded-lg p-5" style={{ background: "#0B0E13", border: "1px solid #1B2430" }}>
+    <div className="rounded-2xl p-6" style={{ background: "#0B0E13", border: "1px solid #161C26" }}>
       <div style={{ fontFamily: "Manrope, sans-serif", fontWeight: 700, fontSize: 13, color: "#F4F6FA", marginBottom: 8 }}>Skill Radar</div>
       <ResponsiveContainer width="100%" height={220}>
         <RadarChart data={chartData} margin={{ top: 10, right: 20, bottom: 10, left: 20 }}>

@@ -16,7 +16,7 @@ export function TopBar() {
   const go = async () => {
     if (!q.trim()) return;
     await search(q);
-    nav("/");
+    nav("/overview");
   };
 
   useEffect(() => {

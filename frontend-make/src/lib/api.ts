@@ -35,6 +35,27 @@ async function request(path: string, opts: RequestInit = {}): Promise<any> {
   return json.data;
 }
 
+export const API_BASE = BASE;
+
+// rawRequest performs ONE fetch and returns status/time/body WITHOUT unwrapping
+// .data — used by the API test page so every call shows up in the Network tab.
+export async function rawRequest(path: string, opts: RequestInit = {}): Promise<{ status: number; ok: boolean; ms: number; body: any }> {
+  const token = getToken();
+  const t0 = (typeof performance !== "undefined" ? performance.now() : Date.now());
+  const res = await fetch(BASE + path, {
+    headers: {
+      "Content-Type": "application/json",
+      ...(token ? { Authorization: "Bearer " + token } : {}),
+      ...(opts.headers || {}),
+    },
+    ...opts,
+  });
+  const ms = Math.round((typeof performance !== "undefined" ? performance.now() : Date.now()) - t0);
+  let body: any;
+  try { body = await res.json(); } catch { body = { _note: "non-JSON response" }; }
+  return { status: res.status, ok: res.ok, ms, body };
+}
+
 const qs = (params: Record<string, any> = {}) => {
   const q = new URLSearchParams(params as any).toString();
   return q ? "?" + q : "";

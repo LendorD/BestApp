@@ -12,10 +12,16 @@ import Auth from "./pages/Auth";
 import Profile from "./pages/Profile";
 import Subscription from "./pages/Subscription";
 import Explorer from "./pages/Explorer";
+import ApiProbe from "./pages/ApiProbe";
+import Landing from "./pages/Landing";
 
 export default function App() {
   const loc = useLocation();
 
+  // Landing is the entry page (full-screen, no dashboard chrome).
+  if (loc.pathname === "/") {
+    return <Landing />;
+  }
   // Auth screens render full-screen, outside the dashboard chrome.
   if (loc.pathname === "/login" || loc.pathname === "/register") {
     return <Auth />;
@@ -33,7 +39,7 @@ export default function App() {
           style={{ scrollbarWidth: "thin", scrollbarColor: "#1B2430 transparent" }}>
           <div className="p-4 sm:p-5 flex flex-col gap-4 w-full max-w-[1600px] mx-auto">
             <Routes>
-              <Route path="/" element={<Overview />} />
+              <Route path="/overview" element={<Overview />} />
               <Route path="/performance" element={<Performance />} />
               <Route path="/heroes" element={<Heroes />} />
               <Route path="/rankings" element={<Rankings />} />
@@ -41,9 +47,10 @@ export default function App() {
               <Route path="/cs2/grenades" element={<Grenades />} />
               <Route path="/cs2/training" element={<Training />} />
               <Route path="/explorer" element={<Explorer />} />
+              <Route path="/api-test" element={<ApiProbe />} />
               <Route path="/profile" element={<Profile />} />
               <Route path="/subscription" element={<Subscription />} />
-              <Route path="*" element={<Navigate to="/" replace />} />
+              <Route path="*" element={<Navigate to="/overview" replace />} />
             </Routes>
           </div>
         </main>

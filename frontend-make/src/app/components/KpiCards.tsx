@@ -115,11 +115,14 @@ export function KpiCards() {
 
       <div className="grid gap-3 grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-6">
         {cards.map(({ key, label, value, delta, positive, icon: Icon, color, sub }) => (
-          <div key={key} className="rounded-lg px-3 py-3 flex flex-col gap-1.5" style={{ background: "#0B0E13", border: "1px solid #1B2430" }}>
+          <div key={key} className="rounded-2xl px-4 py-4 flex flex-col gap-2 transition-colors"
+            style={{ background: "#0B0E13", border: "1px solid #161C26" }}>
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-1.5">
-                <Icon size={12} color={color} />
-                <span style={{ fontFamily: "Manrope, sans-serif", fontSize: 10, color: "#8A94A6" }}>{label}</span>
+                <span className="w-6 h-6 rounded-lg flex items-center justify-center" style={{ background: color + "1a" }}>
+                  <Icon size={12} color={color} />
+                </span>
+                <span style={{ fontFamily: "Manrope, sans-serif", fontSize: 11, color: "#8A94A6" }}>{label}</span>
               </div>
               {delta ? (
                 <div className="flex items-center gap-0.5" style={{ color: positive ? "#00D084" : "#FF4560" }}>
@@ -128,8 +131,8 @@ export function KpiCards() {
                 </div>
               ) : null}
             </div>
-            <div style={{ fontFamily: "JetBrains Mono, monospace", fontWeight: 700, fontSize: 18, color: "#F4F6FA", letterSpacing: "-0.3px", lineHeight: 1 }}>{value}</div>
-            <div style={{ fontFamily: "Manrope, sans-serif", fontSize: 10, color: "#8A94A6" }}>{sub}</div>
+            <div style={{ fontFamily: "JetBrains Mono, monospace", fontWeight: 700, fontSize: 24, color: "#F4F6FA", letterSpacing: "-0.5px", lineHeight: 1 }}>{value}</div>
+            <div style={{ fontFamily: "Manrope, sans-serif", fontSize: 10.5, color: "#6B7480" }}>{sub}</div>
           </div>
         ))}
       </div>

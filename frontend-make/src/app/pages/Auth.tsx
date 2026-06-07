@@ -40,7 +40,7 @@ export default function Auth() {
           display_name: form.display_name.trim() || undefined,
         });
       }
-      const to = loc.state?.from || "/";
+      const to = loc.state?.from || "/overview";
       nav(to, { replace: true });
     } catch (e: any) {
       setErr(e?.message || "Что-то пошло не так");

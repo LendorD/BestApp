@@ -48,7 +48,7 @@ export function RecentMatches() {
     : DEMO.map((m, i) => ({ ...m, color: PALETTE[i % PALETTE.length] }));
 
   return (
-    <div className="rounded-lg overflow-hidden" style={{ background: "#0B0E13", border: "1px solid #1B2430" }}>
+    <div className="rounded-2xl overflow-hidden" style={{ background: "#0B0E13", border: "1px solid #161C26" }}>
       <div className="px-5 py-4 flex items-center justify-between border-b" style={{ borderColor: "#1B2430" }}>
         <div style={{ fontFamily: "Manrope, sans-serif", fontWeight: 700, fontSize: 13, color: "#F4F6FA" }}>Recent Matches</div>
         <div style={{ fontFamily: "JetBrains Mono, monospace", fontSize: 10, color: "#8A94A6" }}>Last {matches.length} games</div>
