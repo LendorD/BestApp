@@ -29,7 +29,10 @@ export function PlayerProvider({ children }: { children: ReactNode }) {
 
   async function loadById(accountId: string, self: boolean) {
     if (!accountId) return;
-    setState((s) => ({ ...s, loading: true, error: "" }));
+    // Commit accountId immediately so light consumers (landing preview,
+    // KPI cards, AI coach) can fetch profile/metrics even if the heavy
+    // dashboard endpoint below fails.
+    setState((s) => ({ ...s, loading: true, error: "", accountId, viewingSelf: self }));
     try {
       const raw = await dota.getDashboard(accountId);
       setState({ data: mapDashboard(raw), loading: false, live: true, error: "", accountId, viewingSelf: self });

@@ -44,6 +44,22 @@ func (s *Service) GetSubscription(ctx context.Context, userID int64) (*billingdo
 	return sub, nil
 }
 
+// HasActivePaidPlan reports whether the user is on an active non-free plan.
+// Used by the delivery layer to gate Pro features (AI coach, deep review).
+func (s *Service) HasActivePaidPlan(ctx context.Context, userID int64) (bool, error) {
+	sub, err := s.GetSubscription(ctx, userID)
+	if err != nil {
+		return false, err
+	}
+	if sub.Plan == billingdomain.PlanFree || sub.Status != billingdomain.StatusActive {
+		return false, nil
+	}
+	if sub.CurrentPeriodEnd != nil && sub.CurrentPeriodEnd.Before(s.now().UTC()) {
+		return false, nil
+	}
+	return true, nil
+}
+
 // Subscribe activates the given plan for the user (mock checkout).
 func (s *Service) Subscribe(ctx context.Context, userID int64, plan billingdomain.PlanID) (*billingdomain.Subscription, error) {
 	if userID <= 0 {

@@ -56,7 +56,13 @@ export default function Coach() {
     try {
       setReport(await aiCoach.review(acc, buildFocus()));
     } catch (e: any) {
-      setErr(/disabled|provider/i.test(e?.message || "") ? "AI выключен на сервере (нет ключа модели)." : (e?.message || "Не удалось получить план"));
+      if (e?.status === 401 || e?.code === "unauthorized") {
+        setErr("Войдите в аккаунт, чтобы получить AI-план.");
+      } else if (e?.code === "pro_required") {
+        setErr("AI-план доступен по подписке Pro — оформи её в разделе «Подписка».");
+      } else {
+        setErr(/disabled|provider/i.test(e?.message || "") ? "AI выключен на сервере (нет ключа модели)." : (e?.message || "Не удалось получить план"));
+      }
     } finally {
       setLoading(false);
     }

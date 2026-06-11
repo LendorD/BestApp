@@ -39,9 +39,15 @@ export function AiCoach() {
     try {
       setReport(await aiCoach.review(accountId));
     } catch (e: any) {
-      setErr(e?.code === "provider_disabled" || /disabled|provider/i.test(e?.message || "")
-        ? "AI выключен: задайте AI_API_KEY (OpenRouter) в .env бэкенда."
-        : (e?.message || "Не удалось получить разбор"));
+      if (e?.status === 401 || e?.code === "unauthorized") {
+        setErr("Войдите в аккаунт, чтобы получить AI-разбор.");
+      } else if (e?.code === "pro_required") {
+        setErr("AI-разбор доступен по подписке Pro — оформи её в разделе «Подписка».");
+      } else {
+        setErr(e?.code === "provider_disabled" || /disabled|provider/i.test(e?.message || "")
+          ? "AI выключен: задайте AI_API_KEY (OpenRouter) в .env бэкенда."
+          : (e?.message || "Не удалось получить разбор"));
+      }
     } finally {
       setLoading(false);
     }

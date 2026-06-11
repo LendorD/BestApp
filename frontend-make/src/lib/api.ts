@@ -103,7 +103,7 @@ export const aiCoach = {
   review: (steamId: string, focus = "") => request(`/ai-coach/dota/player/${steamId}/review`, { method: "POST", body: JSON.stringify({ focus }) }),
   latest: (steamId: string) => request(`/ai-coach/dota/player/${steamId}/latest`),
   reviewMatch: (matchId: string, steamId = "") => request(`/ai-coach/dota/match/${matchId}/review${steamId ? "?steam_id=" + encodeURIComponent(steamId) : ""}`, { method: "POST" }),
-  getReport: (reportId: string) => request(`/ai-coach/reports/${reportId}`),
+  getReport: (reportId: string) => request(`/ai-coach/dota/reports/${reportId}`),
 };
 
 export const cs2 = {

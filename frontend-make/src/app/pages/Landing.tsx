@@ -1,6 +1,6 @@
 import { useRef, useState, useEffect } from "react";
 import { useNavigate } from "react-router";
-import { ArrowRight, LogIn, Gamepad2, Search, Loader2, Medal, X } from "lucide-react";
+import { ArrowRight, LogIn, Gamepad2, Search, Loader2, Medal, X, Share2 } from "lucide-react";
 import { usePlayer } from "../../lib/store";
 import { useAuth } from "../../lib/auth";
 import { dota } from "../../lib/api";
@@ -10,6 +10,90 @@ function rankFromTier(t?: number) {
   if (!t || t <= 0) return "";
   const m = Math.floor(t / 10), s = t % 10, n = MEDALS[m] || "";
   return n ? (m >= 8 ? n : n + (s ? " " + s : "")) : "";
+}
+
+// Draws a 1200x630 share card (OG size) on a canvas and returns a PNG blob.
+// The avatar is loaded with crossOrigin=anonymous; if the CDN blocks CORS we
+// fall back to initials so toBlob() never fails on a tainted canvas.
+async function drawShareCard(opts: {
+  name: string; rank: string; accountId: string; avatar: string;
+  tiles: { label: string; value: string | number }[];
+}): Promise<Blob | null> {
+  const W = 1200, H = 630;
+  const cv = document.createElement("canvas");
+  cv.width = W; cv.height = H;
+  const ctx = cv.getContext("2d");
+  if (!ctx) return null;
+
+  // background
+  ctx.fillStyle = "#050608"; ctx.fillRect(0, 0, W, H);
+  const grad = ctx.createLinearGradient(0, 0, W, H);
+  grad.addColorStop(0, "rgba(0,208,132,0.10)"); grad.addColorStop(1, "rgba(59,130,246,0.06)");
+  ctx.fillStyle = grad; ctx.fillRect(0, 0, W, H);
+  ctx.strokeStyle = "#1B2430"; ctx.lineWidth = 2; ctx.strokeRect(1, 1, W - 2, H - 2);
+
+  // brand
+  ctx.fillStyle = "#00D084"; ctx.font = "800 34px Manrope, sans-serif";
+  ctx.fillText("GameMentor", 60, 80);
+  ctx.fillStyle = "#8A94A6"; ctx.font = "500 22px Manrope, sans-serif";
+  ctx.fillText("AI-разбор твоей Доты", 60, 114);
+
+  // avatar (96x96 rounded) or initials
+  const ax = 60, ay = 170, as = 120;
+  const rounded = (x: number, y: number, w: number, h: number, r: number) => {
+    ctx.beginPath();
+    ctx.moveTo(x + r, y);
+    ctx.arcTo(x + w, y, x + w, y + h, r); ctx.arcTo(x + w, y + h, x, y + h, r);
+    ctx.arcTo(x, y + h, x, y, r); ctx.arcTo(x, y, x + w, y, r);
+    ctx.closePath();
+  };
+  let avatarDrawn = false;
+  if (opts.avatar) {
+    avatarDrawn = await new Promise<boolean>((resolve) => {
+      const img = new Image();
+      img.crossOrigin = "anonymous";
+      img.onload = () => { ctx.save(); rounded(ax, ay, as, as, 20); ctx.clip(); ctx.drawImage(img, ax, ay, as, as); ctx.restore(); resolve(true); };
+      img.onerror = () => resolve(false);
+      img.src = opts.avatar;
+    });
+  }
+  if (!avatarDrawn) {
+    ctx.save(); rounded(ax, ay, as, as, 20); ctx.clip();
+    const g2 = ctx.createLinearGradient(ax, ay, ax + as, ay + as);
+    g2.addColorStop(0, "#3B82F6"); g2.addColorStop(1, "#8B5CF6");
+    ctx.fillStyle = g2; ctx.fillRect(ax, ay, as, as);
+    ctx.fillStyle = "#fff"; ctx.font = "800 44px Manrope, sans-serif"; ctx.textAlign = "center"; ctx.textBaseline = "middle";
+    ctx.fillText((opts.name || "?").slice(0, 2).toUpperCase(), ax + as / 2, ay + as / 2);
+    ctx.restore(); ctx.textAlign = "left"; ctx.textBaseline = "alphabetic";
+  }
+  ctx.strokeStyle = "rgba(0,208,132,0.4)"; ctx.lineWidth = 3; rounded(ax, ay, as, as, 20); ctx.stroke();
+
+  // name + rank + id
+  ctx.fillStyle = "#F4F6FA"; ctx.font = "800 52px Manrope, sans-serif";
+  ctx.fillText(opts.name || "—", 210, 230);
+  ctx.fillStyle = "#D4AF37"; ctx.font = "600 28px Manrope, sans-serif";
+  ctx.fillText(opts.rank || "—", 210, 272);
+  ctx.fillStyle = "#8A94A6"; ctx.font = "500 20px JetBrains Mono, monospace";
+  ctx.fillText("ID " + opts.accountId, 460, 272);
+
+  // stat tiles
+  const tx = 60, ty = 360, tw = (W - 120 - 4 * 20) / 5, th = 150;
+  opts.tiles.forEach((t, i) => {
+    const x = tx + i * (tw + 20);
+    ctx.fillStyle = "#0B0E13"; rounded(x, ty, tw, th, 16); ctx.fill();
+    ctx.strokeStyle = "#161C26"; ctx.lineWidth = 2; rounded(x, ty, tw, th, 16); ctx.stroke();
+    ctx.fillStyle = "#F4F6FA"; ctx.font = "700 44px JetBrains Mono, monospace"; ctx.textAlign = "center";
+    ctx.fillText(String(t.value), x + tw / 2, ty + 78);
+    ctx.fillStyle = "#8A94A6"; ctx.font = "500 20px Manrope, sans-serif";
+    ctx.fillText(t.label, x + tw / 2, ty + 118);
+    ctx.textAlign = "left";
+  });
+
+  // footer
+  ctx.fillStyle = "#8A94A6"; ctx.font = "500 22px Manrope, sans-serif";
+  ctx.fillText("Узнай свой GM Score → " + window.location.origin, 60, 580);
+
+  return new Promise((resolve) => cv.toBlob((b) => resolve(b), "image/png"));
 }
 
 // The marketing landing is a self-contained static design (public/landing.html).
@@ -43,6 +127,23 @@ export default function Landing() {
     if (!q.trim()) return;
     setShow(true);
     await search(q); // resolves steam-link / id and loads the player into the store
+  };
+
+  const [shared, setShared] = useState(false);
+  const share = async () => {
+    const blob = await drawShareCard({ name, rank, accountId, avatar, tiles });
+    if (!blob) return;
+    // try clipboard first (instant paste into Discord/Telegram), fallback to download
+    try {
+      await (navigator as any).clipboard.write([new (window as any).ClipboardItem({ "image/png": blob })]);
+      setShared(true); setTimeout(() => setShared(false), 2000);
+    } catch {
+      const a = document.createElement("a");
+      a.href = URL.createObjectURL(blob);
+      a.download = "gamementor-" + accountId + ".png";
+      a.click();
+      URL.revokeObjectURL(a.href);
+    }
   };
 
   const name = prof?.persona_name || prof?.personaname || (accountId ? "Player " + accountId : "");
@@ -92,8 +193,9 @@ export default function Landing() {
         </div>
       </div>
 
-      {/* Error */}
-      {error ? (
+      {/* Error — only when we have nothing to show (dashboard errors are
+          irrelevant here as long as profile/metrics loaded) */}
+      {error && !prof ? (
         <div style={{ position: "fixed", top: 64, left: "50%", transform: "translateX(-50%)", zIndex: 11, background: "rgba(255,69,96,0.12)", border: "1px solid #FF4560", color: "#FF4560", borderRadius: 10, padding: "8px 14px", fontSize: 13 }}>{error}</div>
       ) : null}
 
@@ -130,6 +232,10 @@ export default function Landing() {
             </button>
             <button onClick={() => nav("/coach")} style={{ display: "inline-flex", alignItems: "center", justifyContent: "center", gap: 8, background: "rgba(212,175,55,0.12)", color: "#D4AF37", border: "1px solid rgba(212,175,55,0.3)", borderRadius: 11, padding: "12px 18px", cursor: "pointer", fontWeight: 700, fontSize: 14 }}>
               AI-план
+            </button>
+            <button onClick={share} title="Скопировать карточку с результатом"
+              style={{ display: "inline-flex", alignItems: "center", justifyContent: "center", gap: 8, background: "rgba(59,130,246,0.12)", color: "#3B82F6", border: "1px solid rgba(59,130,246,0.3)", borderRadius: 11, padding: "12px 16px", cursor: "pointer", fontWeight: 700, fontSize: 14 }}>
+              <Share2 size={15} /> {shared ? "Скопировано!" : ""}
             </button>
           </div>
         </div>

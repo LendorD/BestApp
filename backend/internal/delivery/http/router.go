@@ -33,6 +33,7 @@ type RouterHandlers struct {
 	Identity       *identityhttp.Handler
 	Jobs           *jobshttp.Handler
 	AuthMiddleware gin.HandlerFunc
+	ProMiddleware  gin.HandlerFunc
 }
 
 func NewRouter(log *slog.Logger, handlers RouterHandlers) *gin.Engine {
@@ -50,7 +51,9 @@ func NewRouter(log *slog.Logger, handlers RouterHandlers) *gin.Engine {
 	router.GET("/swagger", func(c *gin.Context) { c.File("./docs/swagger.html") })
 	router.GET("/swagger/openapi.yaml", func(c *gin.Context) { c.File("./docs/openapi.yaml") })
 
-	api := router.Group("/api/v1")
+	// Per-IP rate limit: protects OpenDota free-tier quotas and AI tokens.
+	// Sustained ~2 req/s with a burst of 20 covers normal dashboard loads.
+	api := router.Group("/api/v1", middleware.RateLimit(2, 20))
 	api.GET("/health", func(c *gin.Context) {
 		c.JSON(http.StatusOK, gin.H{"success": true, "data": gin.H{"status": "ok"}})
 	})
@@ -77,7 +80,7 @@ func NewRouter(log *slog.Logger, handlers RouterHandlers) *gin.Engine {
 		metricshttp.RegisterRoutes(api, handlers.Metrics)
 	}
 	if handlers.AICoach != nil {
-		aicoachhttp.RegisterRoutes(api, handlers.AICoach)
+		aicoachhttp.RegisterRoutes(api, handlers.AICoach, handlers.AuthMiddleware, handlers.ProMiddleware)
 	}
 	if handlers.Identity != nil {
 		identityhttp.RegisterRoutes(api, handlers.Identity)

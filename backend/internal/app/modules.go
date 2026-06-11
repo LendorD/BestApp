@@ -60,6 +60,7 @@ type Modules struct {
 	JobsHandler     *jobshttp.Handler
 	JobsService     *jobsapp.Service
 	AuthMiddleware  gin.HandlerFunc
+	ProMiddleware   gin.HandlerFunc
 }
 
 // tokenParserAdapter lets the JWT TokenManager satisfy the delivery
@@ -95,6 +96,7 @@ func NewModules(cfg *config.Config, pool *pgxpool.Pool, cacheStore platformcache
 	authService := authapp.NewService(usersService, tokenManager)
 	authMiddleware := middleware.AuthRequired(tokenParserAdapter{tm: tokenManager})
 	billingService := billingapp.NewService(billingRepository)
+	proMiddleware := middleware.ProRequired(billingService)
 	dotaService := dotaapp.NewService(dotaProvider, dotaProvider, cacheStore)
 	statisticsService := statisticsapp.NewService(dotaService, cacheStore)
 	dotaService.SetStatistics(statisticsService)
@@ -140,6 +142,7 @@ func NewModules(cfg *config.Config, pool *pgxpool.Pool, cacheStore platformcache
 		JobsHandler:     jobsHandler,
 		JobsService:     jobsService,
 		AuthMiddleware:  authMiddleware,
+		ProMiddleware:   proMiddleware,
 	}
 }
 
@@ -156,6 +159,7 @@ func (m *Modules) RouterHandlers() httpdelivery.RouterHandlers {
 		Identity:       m.IdentityHandler,
 		Jobs:           m.JobsHandler,
 		AuthMiddleware: m.AuthMiddleware,
+		ProMiddleware:  m.ProMiddleware,
 	}
 }
 
